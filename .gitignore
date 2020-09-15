@@ -3,4 +3,4 @@ conf/app.ini
 *.swp
 vendor/*
 runtime/logs/*
-router/runtime/*
+routers/runtime/*
