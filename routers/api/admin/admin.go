@@ -4,11 +4,13 @@ import (
 	"cafe/models"
 	"cafe/pkg/app"
 	"cafe/pkg/e"
+	"cafe/pkg/logging"
 	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 type Item struct {
@@ -77,4 +79,23 @@ func AddItem(c *gin.Context) {
 		return
 	}
 	appG.Response(http.StatusCreated, e.CREATED, nil)
+}
+
+func DelItem(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	err = models.SetIsDel(id)
+	if err == gorm.ErrRecordNotFound {
+		appG.Response(http.StatusBadRequest, e.ID_NOT_FOUND, nil)
+		return
+	} else if err != nil {
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		logging.Error(err)
+		return
+	}
+	appG.Response(http.StatusOK, e.DELETED, nil)
 }

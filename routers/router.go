@@ -35,7 +35,7 @@ func InitRouter() *gin.Engine {
 		adminApi.GET("/items", admin.GetItems)
 		adminApi.PATCH("/item/:id", admin.UpdateItem)
 		adminApi.POST("/additem", admin.AddItem)
-
+		adminApi.POST("/delitem/:id", admin.DelItem)
 	}
 	r.GET("/wsqueue", func(c *gin.Context) {
 		websocket.Wshandler(c.Writer, c.Request)

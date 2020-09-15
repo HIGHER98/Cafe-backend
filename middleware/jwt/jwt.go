@@ -1,32 +1,20 @@
 package jwt
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"cafe/pkg/e"
-	"cafe/pkg/logging"
 	"cafe/pkg/util"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
-type Token struct {
-	Token string `json:"token"`
-}
-
 // JWT is jwt middleware
 func JWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var t Token
 		code := e.SUCCESS
-		data, err := c.GetRawData()
-		if err != nil {
-			logging.Warn(err)
-		}
-		json.Unmarshal(data, &t)
-		token := t.Token
+		token := c.Query("token")
 		if token == "" {
 			code = e.UNAUTHORIZED
 		} else {

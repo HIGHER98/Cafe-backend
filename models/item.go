@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -41,8 +40,7 @@ func GetItems() []*Item {
 //SELECT * FROM item WHERE ID=? ORDER BY id LIMIT 1;
 func GetItemById(id int) (*Item, error) {
 	var item Item
-	if err := db.Where("id=?", id).First(&item).Error; err != nil {
-		log.Fatal(err)
+	if err := db.Where("id=? AND is_del=0", id).First(&item).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
