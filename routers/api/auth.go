@@ -28,21 +28,30 @@ func GetAuth(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
 		return
 	}
-	data, err := c.GetRawData()
+
+	var userInterface map[string]interface{}
+	inrec, err := json.Marshal(user)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.MARSHAL_ERROR, nil)
+		return
+	}
+	json.Unmarshal(inrec, &userInterface)
+	//Below works for test but not Insomnia
+	/*data, err := c.GetRawData()
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.ERROR, nil)
 		return
 	}
 	var userMap map[string]string
-	json.Unmarshal(data, &userMap)
-	logging.Debug(userMap)
-	s, err := models.Check(userMap["username"], userMap["password"])
+	json.Unmarshal(data, &userMap)*/
+	logging.Debug(userInterface)
+	s, err := models.Check(userInterface["username"].(string), userInterface["password"].(string))
 	if err != nil || !s {
 		appG.Response(http.StatusUnauthorized, e.UNAUTHORIZED, nil)
 		return
 	}
 
-	token, err := util.GenerateToken(userMap["username"], userMap["password"])
+	token, err := util.GenerateToken(userInterface["username"].(string), userInterface["password"].(string))
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return

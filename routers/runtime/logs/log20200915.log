@@ -148,3 +148,21 @@
 [map[password:test role: username:testy]]
 [DEBUG][auth.go:38]2020/09/15 18:18:04 
 [map[password:test role: username:testy]]
+[DEBUG][auth.go:38]2020/09/15 19:02:02 
+[map[password:test role: username:testy]]
+[DEBUG][auth.go:38]2020/09/15 19:33:58 
+[{"username":"testy","password":"test","role":0}]
+[INFO][auth.go:66]2020/09/15 19:38:22 
+[Signing up new user:  {0 testy $2a$08$zeb.EMN2dKGLZJ7Px0VnfO2izZPSdwfJRZoOrUePZiJnnIchDBpaW 1 0}]
+[DEBUG][auth.go:38]2020/09/15 19:38:22 
+[[123 34 117 115 101 114 110 97 109 101 34 58 34 116 101 115 116 121 34 44 34 112 97 115 115 119 111 114 100 34 58 34 116 101 115 116 34 44 34 114 111 108 101 34 58 48 125]]
+[INFO][auth.go:66]2020/09/15 19:45:28 
+[Signing up new user:  {0 testy $2a$08$R.ft53m62uN8FBCxD35tKO29EMcwpx8ISUI7i/c9sWFiWLheat63e 1 0}]
+[INFO][auth.go:38]2020/09/15 19:45:28 
+[Signing in  testy]
+[INFO][auth.go:43]2020/09/15 19:47:48 
+[Signing in  ]
+[DEBUG][auth.go:32]2020/09/15 19:56:58 
+[{"username":"testy","password":"test","role":0}]
+[DEBUG][auth.go:46]2020/09/15 20:39:33 
+[map[password: role:0 username:]]

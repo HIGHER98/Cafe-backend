@@ -106,7 +106,8 @@ type T struct {
 
 var j T
 
-/*func Test_CreateUser(t *testing.T) {
+/*
+func Test_CreateUser(t *testing.T) {
 	user := &User{Username: "testy", Password: "test", Role: 1}
 	jsonUser, err := json.Marshal(user)
 	if err != nil {
@@ -125,7 +126,8 @@ var j T
 		t.Errorf("Failed to marshal response to json: %v", err)
 	}
 	assert.Equal(t, "Created", resp.Msg)
-}*/
+}
+*/
 
 func Test_SignIn(t *testing.T) {
 	user := &User{Username: "testy", Password: "test"}
