@@ -41,6 +41,11 @@ func AddPurchase(data map[string]interface{}) error {
 	} else if itemid, ok := data["item_id"].(float64); ok {
 		id = int(itemid)
 	}
+	item, err := GetItemById(id)
+	if err != nil || item == nil {
+		return err
+	}
+
 	purchase := Purchase{
 		ItemId:         id,
 		Email:          data["email"].(string),

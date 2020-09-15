@@ -29,18 +29,18 @@ func InitRouter() *gin.Engine {
 	r.POST("/signup", api.CreateUser)
 
 	//Admin routes
-	adminApi := r.Group("/admin/api")
+	adminApi := r.Group("/api/admin")
 	adminApi.Use(jwt.JWT())
 	{
 		adminApi.GET("/items", admin.GetItems)
-		adminApi.PATCH("/item/:id", admin.UpdateItem)
 		adminApi.POST("/additem", admin.AddItem)
+		adminApi.PATCH("/item/:id", admin.UpdateItem)
 		adminApi.POST("/delitem/:id", admin.DelItem)
 	}
 	r.GET("/wsqueue", func(c *gin.Context) {
 		websocket.Wshandler(c.Writer, c.Request)
 	})
-	staffApi := r.Group("staff/api")
+	staffApi := r.Group("/api/staff")
 	staffApi.Use(jwt.JWT())
 	{
 

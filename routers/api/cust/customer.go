@@ -6,7 +6,6 @@ import (
 	"cafe/pkg/e"
 	"cafe/pkg/logging"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -70,8 +69,10 @@ func SubmitDetails(c *gin.Context) {
 	json.Unmarshal(inrec, &purchaseInterface)
 
 	err = models.AddPurchase(purchaseInterface)
-	if err != nil {
-		log.Fatalf("%v", err)
+	if err == gorm.ErrRecordNotFound {
+		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
+		return
+	} else if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}

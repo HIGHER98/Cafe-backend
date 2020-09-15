@@ -3,9 +3,9 @@ SET FOREIGN_KEY_CHECKS=0;
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT, 
-	`name` varchar(32) DEFAULT '',
+	`name` varchar(32) NOT NULL,
 	`description` text,
-	`price` float(8, 2),
+	`price` float(8, 2) NOT NULL,
 	`upload_date` DATE NOT NULL,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)

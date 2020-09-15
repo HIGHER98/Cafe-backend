@@ -52,10 +52,15 @@ func UpdateItem(c *gin.Context) {
 		return
 	}
 	json.Unmarshal(inrec, &itemInterface)
+	logging.Debug("Updating item with: ", itemInterface)
 
 	err = models.UpdateItem(id, itemInterface)
-	if err != nil {
+	if err == gorm.ErrRecordNotFound {
+		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
+		return
+	} else if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		logging.Error(err)
 		return
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
@@ -71,11 +76,17 @@ func AddItem(c *gin.Context) {
 		return
 	}
 	var itemInterface map[string]interface{}
-	inrec, _ := json.Marshal(item)
+	inrec, err := json.Marshal(item)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.MARSHAL_ERROR, nil)
+		return
+	}
 	json.Unmarshal(inrec, &itemInterface)
+	logging.Debug("Adding item: ", itemInterface)
 	err = models.AddItem(itemInterface)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		logging.Warn("Failed to create item: ", itemInterface, "\nError: ", err)
 		return
 	}
 	appG.Response(http.StatusCreated, e.CREATED, nil)
@@ -99,3 +110,5 @@ func DelItem(c *gin.Context) {
 	}
 	appG.Response(http.StatusOK, e.DELETED, nil)
 }
+
+//VIEW/EDIT/DELETE/ADD staff
