@@ -4,12 +4,13 @@ import (
 	"cafe/models"
 	"cafe/pkg/app"
 	"cafe/pkg/e"
+	"cafe/pkg/logging"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 //Get a single item by ID
@@ -21,8 +22,12 @@ func GetItem(c *gin.Context) {
 		return
 	}
 	item, err := models.GetItemById(id)
-	if err != nil {
-		appG.Response(http.StatusNotFound, e.NOT_FOUND, nil)
+	if err == gorm.ErrRecordNotFound {
+		appG.Response(http.StatusOK, e.SUCCESS, nil)
+		return
+	} else if err != nil {
+		logging.Error(err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, item)
@@ -64,8 +69,10 @@ func SubmitDetails(c *gin.Context) {
 	json.Unmarshal(inrec, &purchaseInterface)
 
 	err = models.AddPurchase(purchaseInterface)
-	if err != nil {
-		log.Fatalf("%v", err)
+	if err == gorm.ErrRecordNotFound {
+		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
+		return
+	} else if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}

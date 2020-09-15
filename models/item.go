@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -11,7 +10,7 @@ import (
 type Item struct {
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
-	Price       float32 `json:"price"`
+	Price       float64 `json:"price"`
 	UploadDate  string  `json:"upload_date"`
 	IsDel       int     `json:"is_del"`
 }
@@ -19,9 +18,9 @@ type Item struct {
 //INSERT INTO item (name, description, price, del_price, upload_date) VALUES (?, ?, ?, ?, ?)
 func AddItem(data map[string]interface{}) error {
 	item := Item{
-		Name:        data["name"].(string),
-		Description: data["description"].(string),
-		Price:       data["price"].(float32),
+		Name:        data["Name"].(string),
+		Description: data["Description"].(string),
+		Price:       data["Price"].(float64),
 		UploadDate:  time.Now().Format("2006-01-02"),
 		IsDel:       0,
 	}
@@ -41,8 +40,7 @@ func GetItems() []*Item {
 //SELECT * FROM item WHERE ID=? ORDER BY id LIMIT 1;
 func GetItemById(id int) (*Item, error) {
 	var item Item
-	if err := db.Where("id=?", id).First(&item).Error; err != nil {
-		log.Fatal(err)
+	if err := db.Where("id=? AND is_del=0", id).First(&item).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
@@ -70,11 +68,12 @@ func SetIsDel(id int) error {
 	return nil
 }
 
+//UPDATE item SET name=?, description=?, price=? WHERE id=?;
 func UpdateItem(id int, data map[string]interface{}) error {
 	item := Item{
-		Name:        data["name"].(string),
-		Description: data["description"].(string),
-		Price:       data["price"].(float32),
+		Name:        data["Name"].(string),
+		Description: data["Description"].(string),
+		Price:       data["Price"].(float64),
 		UploadDate:  time.Now().Format("2006-01-02"),
 	}
 	if err := db.Model(&item).Where("id = ?", id).Update(item).Error; err != nil {
