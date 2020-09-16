@@ -14,6 +14,7 @@ type Purchase struct {
 	CustName       string `json:"cust_name"`
 	DateTime       string `json:"date_time"`
 	CollectionTime string `json:"collection_time"`
+	Notes          string `json:"notes"`
 }
 
 //SELECT * FROM purchase;
@@ -35,25 +36,22 @@ func GetPurchaseById(id int) (*Purchase, error) {
 }
 
 //INSERT INTO purchase (item_id, email, status, cust_name, date_time, collection_time) VALUES (?, ?, 1, ?, ?);
-func AddPurchase(data map[string]interface{}) error {
-	var id int
-	if itemid, ok := data["item_id"].(int); ok {
-		id = itemid
-	} else if itemid, ok := data["item_id"].(float64); ok {
-		id = int(itemid)
-	}
-	item, err := GetItemById(id)
-	if err != nil || item == nil {
+func AddPurchase(data Purchase) error {
+	logging.Info("Adding purchase: ", data)
+
+	_, err := GetItemById(data.ItemId)
+	if err != nil {
 		return err
 	}
 
 	purchase := Purchase{
-		ItemId:         id,
-		Email:          data["email"].(string),
+		ItemId:         data.ItemId,
+		Email:          data.Email,
 		Status:         PENDING_TRANSACTION,
-		CustName:       data["cust_name"].(string),
+		CustName:       data.CustName,
 		DateTime:       time.Now().Format("2006-01-02 15:04:05"),
-		CollectionTime: data["collection_time"].(string),
+		CollectionTime: data.CollectionTime,
+		Notes:          data.Notes,
 	}
 	if err := db.Create(&purchase).Error; err != nil {
 		return err
