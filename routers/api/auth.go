@@ -54,6 +54,7 @@ func GetAuth(c *gin.Context) {
 	token, err := util.GenerateToken(userInterface["username"].(string), userInterface["password"].(string))
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		logging.Error(err)
 		return
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{

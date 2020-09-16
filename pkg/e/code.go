@@ -15,4 +15,5 @@ const (
 	FAILED_ATOI    = 5003
 	ID_NOT_FOUND   = 5004
 	DELETED        = 5005
+	INVALID_ROLE   = 5006
 )

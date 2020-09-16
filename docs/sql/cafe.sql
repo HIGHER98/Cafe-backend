@@ -73,7 +73,7 @@ CREATE TABLE `users` (
 CREATE VIEW user_view AS
 	SELECT u.id, u.username, r.title
 	FROM users AS u, roles AS r
-	WHERE u.role = r.id;
+	WHERE u.role = r.id AND u.is_del=0;
 
 -- Queue view
 CREATE VIEW queue_view AS

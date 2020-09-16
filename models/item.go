@@ -57,7 +57,7 @@ func GetItemsForSale() ([]*Item, error) {
 }
 
 //UPDATE item SET is_del=1 WHERE id=?;
-func SetIsDel(id int) error {
+func SetItemIsDel(id int) error {
 	item, err := GetItemById(id)
 	if err != nil || err == gorm.ErrRecordNotFound {
 		return err
