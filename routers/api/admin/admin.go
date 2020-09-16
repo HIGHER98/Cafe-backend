@@ -167,15 +167,14 @@ func UpdateUserRole(c *gin.Context) {
 		return
 	}
 
-	logging.Debug("%+v\n", r)
 	if err = models.UpdateUser(id, r.Role); err != nil {
 		switch err {
 		case gorm.ErrRecordNotFound:
 			appG.Response(http.StatusBadRequest, e.ID_NOT_FOUND, nil)
 			return
 		default:
-			appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 			logging.Error(err)
+			appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 			return
 		}
 	}

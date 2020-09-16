@@ -1,6 +1,10 @@
 package websocket
 
 import (
+	"cafe/models"
+	"cafe/pkg/e"
+	"cafe/pkg/logging"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -24,7 +28,16 @@ func Wshandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			break
 		}
-
-		conn.WriteMessage(t, []byte("pong"))
+		pur, err := models.GetTodaysOrders()
+		if err != nil {
+			logging.Error(err)
+			conn.WriteMessage(t, []byte(e.GetMsg(e.ERROR)))
+		}
+		purBytes, err := json.Marshal(&pur)
+		if err != nil {
+			logging.Error(err)
+			conn.WriteMessage(t, []byte(e.GetMsg(e.ERROR)))
+		}
+		conn.WriteMessage(t, purBytes)
 	}
 }
