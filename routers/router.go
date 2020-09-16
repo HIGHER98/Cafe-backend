@@ -5,6 +5,7 @@ import (
 	"cafe/routers/api"
 	"cafe/routers/api/admin"
 	"cafe/routers/api/cust"
+	"cafe/routers/api/staff"
 	"cafe/routers/api/staff/websocket"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,8 @@ func InitRouter() *gin.Engine {
 	staffApi := r.Group("/api/staff")
 	staffApi.Use(jwt.JWT())
 	{
+		staffApi.GET("/purchases", staff.GetPurchases)
+		staffApi.PATCH("/purchase", staff.UpdatePurchaseStatus)
 
 	}
 

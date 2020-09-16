@@ -5,7 +5,6 @@ import (
 	"cafe/pkg/app"
 	"cafe/pkg/e"
 	"cafe/pkg/logging"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -54,21 +53,21 @@ type Purchase struct {
 //Submit details for purchasing an item
 func SubmitDetails(c *gin.Context) {
 	appG := app.Gin{C: c}
-	var purchase Purchase
+	var purchase models.Purchase
 	err := c.Bind(&purchase)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
 		return
 	}
-	var purchaseInterface map[string]interface{}
+	/*var purchaseInterface map[string]interface{}
 	inrec, err := json.Marshal(purchase)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.MARSHAL_ERROR, nil)
 		return
 	}
 	json.Unmarshal(inrec, &purchaseInterface)
-
-	err = models.AddPurchase(purchaseInterface)
+	*/
+	err = models.AddPurchase(purchase)
 	if err == gorm.ErrRecordNotFound {
 		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
 		return

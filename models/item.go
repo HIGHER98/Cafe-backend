@@ -76,7 +76,7 @@ func UpdateItem(id int, data map[string]interface{}) error {
 		Price:       data["Price"].(float64),
 		UploadDate:  time.Now().Format("2006-01-02"),
 	}
-	if err := db.Model(&item).Where("id = ?", id).Update(item).Error; err != nil {
+	if err := db.Model(&item).Where("id=?", id).Update(item).Error; err != nil {
 		return err
 	}
 	return nil

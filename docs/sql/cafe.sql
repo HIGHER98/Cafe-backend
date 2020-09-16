@@ -26,7 +26,7 @@ CREATE TABLE `image` (
 DROP TABLE IF EXISTS `status`;
 CREATE TABLE `status` (
 	`id` tinyint(3) NOT NULL AUTO_INCREMENT,
-	`description` ENUM ('Pending transaction', 'Pending', 'Confirmed', 'Collection'),
+	`description` VARCHAR(64),
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -42,6 +42,7 @@ CREATE TABLE `purchase` (
 	`cust_name` varchar(64) NOT NULL,
 	`date_time` DATETIME NOT NULL, 
 	`collection_time` DATETIME NOT NULL,
+	`notes` varchar(256),
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`item_id`) REFERENCES item (`id`),
 	FOREIGN KEY (`status`) REFERENCES status (`id`)
@@ -77,7 +78,7 @@ CREATE VIEW user_view AS
 
 -- Queue view
 CREATE VIEW queue_view AS
-	SELECT p.id, i.name, s.description, i.price, p.collection_time, p.cust_name, p.date_time AS order_time
+	SELECT p.id, i.name, s.description, i.price, p.collection_time, p.cust_name, p.notes, p.date_time AS order_time
 	FROM purchase AS p, item AS i, status AS s
 	WHERE p.item_id = i.id AND p.status=s.id;
 
@@ -88,8 +89,6 @@ INSERT INTO status (description) VALUES ('Collection');
 
 INSERT INTO roles (title) VALUES ('Admin');
 INSERT INTO roles (title) VALUES ('Staff');
---Sample data
-INSERT INTO item (name, description, price, upload_date) VALUES ("Coffee", "Yummy coffee", "2.50", "2020-09-20");
 
 
 SET FOREIGN_KEY_CHECKS=1;

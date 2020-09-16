@@ -1,7 +1,5 @@
 package models
 
-import "github.com/jinzhu/gorm"
-
 const (
 	PENDING_TRANSACTION = 1
 	PENDING             = 2
@@ -25,9 +23,8 @@ func AddStatus(desc string) error {
 //Get Status
 func GetStatus(id int) (*Status, error) {
 	var status Status
-	err := db.Where("id").Where("id=?", id).First(&status).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return &status, err
+	if err := db.Where("id").Where("id=? AND is_del=0", id).First(&status).Error; err != nil {
+		return nil, err
 	}
 	return &status, nil
 }
