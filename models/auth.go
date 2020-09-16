@@ -2,6 +2,7 @@ package models
 
 import (
 	"cafe/pkg/logging"
+
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,7 +15,7 @@ type Users struct {
 	IsDel    int    `json:"is_del"`
 }
 
-//TODO Return roll as well
+//SELECT id, password, role FROM users WHERE username=? AND is_del=0 LIMIT 1;
 func Check(username, password string) (bool, error) {
 	var user Users
 	err := db.Select("id, password, role").Where(Users{Username: username, IsDel: 0}).First(&user).Error
@@ -32,20 +33,73 @@ func Check(username, password string) (bool, error) {
 }
 
 //Returns false, nil if no user exists
+//If user exists is marked as is_del=1, they are deleted from the database and false, nil is returned
 func CheckUserExists(username string) (bool, error) {
 	var user Users
-	err := db.Select("id").Where(Users{Username: username, IsDel: 0}).First(&user).Error
+	err := db.Select("id").Where(Users{Username: username}).First(&user).Error
 	if err == gorm.ErrRecordNotFound {
 		return false, nil
 	} else if err != nil {
 		return false, err
 	}
-	if user.ID > 0 {
+	if user.ID > 0 && user.IsDel == 0 {
 		return true, nil
+	} else if user.IsDel == 1 {
+		//Free up username if user has been marked deleted in the DB
+		if err = DeleteUser(user.ID); err != nil {
+			return true, err
+		}
 	}
 	return false, nil
 }
 
+//Same as the CheckUserExists(username string) but doesn't delete a user marked is_del=1
+func CheckUserExistsNoDel(id int) (bool, error) {
+	var user Users
+	if err := db.Select("id").Where(Users{ID: id}).First(&user).Error; err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+//Update user role
+func UpdateUser(id, role int) error {
+	exists, err := CheckUserExistsNoDel(id)
+	if err != nil || !exists {
+		return err
+	}
+	exists, err = CheckRoleExists(role)
+	if err != nil || !exists {
+		return err
+	}
+	if err := db.Model(&Users{}).Where("id=?", id).Update("role", role).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//UPDATE users SET is_del=1 WHERE id=?;
+func MarkUserDeleted(id int) error {
+	if err := db.Model(&Users{}).Where("id=?", id).Update("is_del", 1).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+//DELETE from users WHERE id=?;
+func DeleteUser(id int) error {
+	if err := db.Where("id=?", id).Delete(&Users{}).Error; err != nil {
+		switch err {
+		case gorm.ErrRecordNotFound:
+			return nil
+		default:
+			return err
+		}
+	}
+	return nil
+}
+
+//INSERT INTO users (username, password, role) VALUES (?, ?, ?)
 func SignupUser(data map[string]interface{}) (bool, error) {
 	var role int
 	if roleid, ok := data["role"].(int); ok {
@@ -68,4 +122,18 @@ func SignupUser(data map[string]interface{}) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+type UserView struct {
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+	Title    string `json:"title"`
+}
+
+func GetActiveUsers() ([]*UserView, error) {
+	var users []*UserView
+	if err := db.Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
 }
