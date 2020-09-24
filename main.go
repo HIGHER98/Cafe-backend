@@ -6,7 +6,7 @@ import (
 	"cafe/pkg/setting"
 	"cafe/pkg/util"
 	"cafe/routers"
-
+	"cafe/routers/api/staff"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,6 +21,7 @@ func init() {
 	logging.Setup()
 	models.Setup()
 	util.Setup()
+	staff.InitOrders()
 }
 
 func main() {

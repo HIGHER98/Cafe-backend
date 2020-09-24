@@ -36,7 +36,7 @@ func GetPurchaseById(id int) (*Purchase, error) {
 }
 
 //INSERT INTO purchase (item_id, email, status, cust_name, date_time, collection_time) VALUES (?, ?, 1, ?, ?);
-func AddPurchase(data Purchase) error {
+func AddPurchase(data *Purchase) error {
 	logging.Info("Adding purchase: ", data)
 
 	_, err := GetItemById(data.ItemId)
@@ -83,6 +83,5 @@ func GetTodaysOrders() ([]*Purchase, error) {
 	if err := db.Where("collection_time > ? AND collection_time < ? AND status IN (?)", t, t1, []int{2, 3}).Find(&purchase).Error; err != nil {
 		return nil, err
 	}
-	logging.Info(purchase)
 	return purchase, nil
 }
