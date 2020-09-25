@@ -5,24 +5,25 @@
 
   <body>
     <h3>WebSocket Go</h3>
+
     <pre id="output"></pre>
+		<button id="updateStatus">Update status</button>
 
     <script>
-      url = 'ws://localhost:8000/wsqueue';
+      url = 'ws://localhost:8000/ws';
       c = new WebSocket(url);
-      
-      send = function(data){
-        $("#output").append((new Date())+ " ==> "+data+"\n")
-        c.send(data)
-      }
-
+			
+			$("#updateStatus").click(function(){
+				c.send(JSON.stringify({"id":20,"status":3}));
+			});
+			
       c.onmessage = function(msg){
-        $("#output").append((new Date())+ " <== "+msg.data+"\n")
+        $("#output").append(msg.data+"\n")
         console.log(msg)
       }
 
       c.onopen = function(){
-          send("ping")
+				console.log("Received message")
 			}
     </script>
 
