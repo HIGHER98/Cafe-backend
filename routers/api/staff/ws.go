@@ -14,9 +14,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//TODO Setup websocket to send down the pipe when channel is updated. Channel will be updated when order status is changed.
-//Authenticate on establishing websocket connection - can be trusted after that; verify that claim more than Stackoverflow person did.
-
 type Request struct {
 	Req  string                 `json:"req"`
 	Data map[string]interface{} `json:"data"`
