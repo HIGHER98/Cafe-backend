@@ -85,7 +85,7 @@ CREATE VIEW queue_view AS
 INSERT INTO status (description) VALUES ('Pending transaction');
 INSERT INTO status (description) VALUES ('Pending');
 INSERT INTO status (description) VALUES ('Confirmed');
-INSERT INTO status (description) VALUES ('Collection');
+INSERT INTO status (description) VALUES ('Collected');
 
 INSERT INTO roles (title) VALUES ('Admin');
 INSERT INTO roles (title) VALUES ('Staff');

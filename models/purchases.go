@@ -76,6 +76,8 @@ func UpdatePurchaseStatus(id, status int) error {
 	return nil
 }
 
+//Returns a list of orders for todays date that are pending/collected
+//SELECT * FROM purchase WHERE collection_time > today AND collection_time < tomorrow AND status IN (2,3)
 func GetTodaysOrders() ([]*Purchase, error) {
 	var purchase []*Purchase
 	t := time.Now().Format("2006-01-02")
@@ -86,6 +88,8 @@ func GetTodaysOrders() ([]*Purchase, error) {
 	return purchase, nil
 }
 
+//Anonymises data in the purchase table after `days` old
+//UPDATE purchase SET cust_name=Anonymised AND email=Anonymised WHERE date_time <= today-days
 func Anonymise(days int) error {
 	t := time.Now().AddDate(0, 0, (days * -1)).Format("2006-01-02")
 	logging.Debug("Anonymising since: ", t)

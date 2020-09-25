@@ -14,9 +14,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//TODO Setup websocket to send down the pipe when channel is updated. Channel will be updated when order status is changed.
-//Authenticate on establishing websocket connection - can be trusted after that; verify that claim more than Stackoverflow person did.
-
 type Request struct {
 	Req  string                 `json:"req"`
 	Data map[string]interface{} `json:"data"`
@@ -139,10 +136,6 @@ func wsWriter(conn *websocket.Conn, order chan Order) {
 		case <-time.After(5 * 60 * time.Second):
 			a = false
 			conn.WriteMessage(websocket.TextMessage, respReq("auth"))
-			//Need to make sure they actually do though. Need to keep track of who that is sent to
-			/*case <-auth:
-			a = true
-			conn.WriteMessage(websocket.TextMessage, respSuccess(nil))*/
 		}
 	}
 

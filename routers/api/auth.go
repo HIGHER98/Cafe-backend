@@ -44,7 +44,6 @@ func GetAuth(c *gin.Context) {
 	}
 	var userMap map[string]string
 	json.Unmarshal(data, &userMap)*/
-	logging.Debug(userInterface)
 	s, err := models.Check(userInterface["username"].(string), userInterface["password"].(string))
 	if err != nil || !s {
 		appG.Response(http.StatusUnauthorized, e.UNAUTHORIZED, nil)
