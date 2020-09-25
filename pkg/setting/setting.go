@@ -50,6 +50,12 @@ type Database struct {
 
 var DatabaseSetting = &Database{}
 
+type Cron struct {
+	Days int
+}
+
+var CronSetting = &Cron{}
+
 var cfg *ini.File
 
 // Setup initialize the configuration instance
@@ -63,6 +69,7 @@ func Setup() {
 	mapTo("app", AppSetting)
 	mapTo("server", ServerSetting)
 	mapTo("database", DatabaseSetting)
+	mapTo("cron", CronSetting)
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second

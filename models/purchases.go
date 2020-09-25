@@ -85,3 +85,12 @@ func GetTodaysOrders() ([]*Purchase, error) {
 	}
 	return purchase, nil
 }
+
+func Anonymise(days int) error {
+	t := time.Now().AddDate(0, 0, (days * -1)).Format("2006-01-02")
+	logging.Debug("Anonymising since: ", t)
+	if err := db.Model(Purchase{}).Where("date_time <= ?", t).Updates(Purchase{CustName: "Anonymised", Email: "Anonymised"}).Error; err != nil {
+		return err
+	}
+	return nil
+}

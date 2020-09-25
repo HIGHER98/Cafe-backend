@@ -6,7 +6,6 @@ import (
 	"cafe/routers/api/admin"
 	"cafe/routers/api/cust"
 	"cafe/routers/api/staff"
-	"cafe/routers/api/staff/websocket"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,14 +41,17 @@ func InitRouter() *gin.Engine {
 		adminApi.DELETE("/user/:id", admin.DelUser)
 		adminApi.PATCH("/user/:id", admin.UpdateUserRole)
 	}
-	r.GET("/wsqueue", func(c *gin.Context) {
-		websocket.Wshandler(c.Writer, c.Request)
+	r.GET("/ws", func(c *gin.Context) {
+		staff.Wshandler(c.Writer, c.Request)
 	})
 	staffApi := r.Group("/api/staff")
 	staffApi.Use(jwt.JWT())
 	{
 		staffApi.GET("/purchases", staff.GetPurchases)
 		staffApi.PATCH("/purchase", staff.UpdatePurchaseStatus)
+		/*	staffApi.GET("/ws", func(c *gin.Context){
+			staff.Wshandler(c.Writer, c.Request)
+		})*/
 
 	}
 

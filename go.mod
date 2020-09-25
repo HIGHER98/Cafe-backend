@@ -8,6 +8,9 @@ require (
 	github.com/go-ini/ini v1.61.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/jinzhu/gorm v1.9.16
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
+	gopkg.in/ini.v1 v1.61.0 // indirect
+	gopkg.in/robfig/cron.v1 v1.2.0
 )

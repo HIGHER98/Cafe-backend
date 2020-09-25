@@ -11,25 +11,26 @@ import (
 	"net/http"
 )
 
-type Purchase struct {
+type Order struct {
 	Id     int `json:"id"`
 	Status int `json:"status"`
 }
 
-var Order chan Purchase
+var O chan Order
 
 func InitOrders() {
-	Order = make(chan Purchase)
+	O = make(chan Order)
 }
 
-func UpdateOrder(o chan Purchase, p Purchase) {
+//Signals websocket connections of an update to an order
+func UpdateOrder(o chan Order, p Order) {
 	o <- p
 }
 
 func UpdatePurchaseStatus(c *gin.Context) {
 	logging.Info("Updating purchase...")
 	appG := app.Gin{C: c}
-	var p Purchase
+	var p Order
 	err := c.Bind(&p)
 	if err != nil {
 		logging.Debug(err)
@@ -47,7 +48,10 @@ func UpdatePurchaseStatus(c *gin.Context) {
 			return
 		}
 	}
-	go UpdateOrder(Order, p)
+	//If status is pending || confirmed
+	if p.Status == 1 || p.Status == 2 {
+		go UpdateOrder(O, p)
+	}
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
 

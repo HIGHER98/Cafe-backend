@@ -2,6 +2,7 @@ package main
 
 import (
 	"cafe/models"
+	"cafe/pkg/cron"
 	"cafe/pkg/logging"
 	"cafe/pkg/setting"
 	"cafe/pkg/util"
@@ -15,16 +16,16 @@ import (
 )
 
 func init() {
-	fmt.Println("Starting backend...")
-
 	setting.Setup()
 	logging.Setup()
 	models.Setup()
 	util.Setup()
+	cron.Setup()
 	staff.InitOrders()
 }
 
 func main() {
+	logging.Info("Starting backend...")
 	gin.SetMode(setting.ServerSetting.RunMode)
 
 	routersInit := routers.InitRouter()
