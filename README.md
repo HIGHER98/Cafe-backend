@@ -4,9 +4,15 @@ GET    /items/:id
 POST   /purchase
 POST   /auth
 POST   /signup
-GET    /admin/api/items
-PATCH  /admin/api/item/:id
-POST   /admin/api/additem
-POST   /admin/api/delitem/:id
-GET    /wsqueue
+GET    /api/admin/items
+POST   /api/admin/item
+PATCH  /api/admin/item/:id 
+DELETE /api/admin/item/:id
+GET    /api/admin/users
+DELETE /api/admin/user/:id
+PATCH  /api/admin/user/:id
+GET    /ws
+GET    /api/staff/purchases
+PATCH  /api/staff/purchase
+
 
