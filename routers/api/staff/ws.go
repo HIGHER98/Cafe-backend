@@ -136,10 +136,6 @@ func wsWriter(conn *websocket.Conn, order chan Order) {
 		case <-time.After(5 * 60 * time.Second):
 			a = false
 			conn.WriteMessage(websocket.TextMessage, respReq("auth"))
-			//Need to make sure they actually do though. Need to keep track of who that is sent to
-			/*case <-auth:
-			a = true
-			conn.WriteMessage(websocket.TextMessage, respSuccess(nil))*/
 		}
 	}
 
