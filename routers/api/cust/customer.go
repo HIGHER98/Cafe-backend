@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 //Get a single item by ID
@@ -20,7 +20,7 @@ func GetItem(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
 		return
 	}
-	item, err := models.GetItemById(id)
+	item, err := models.GetItemViewById(id)
 	if err == gorm.ErrRecordNotFound {
 		appG.Response(http.StatusOK, e.SUCCESS, nil)
 		return
@@ -35,19 +35,12 @@ func GetItem(c *gin.Context) {
 //Get all items for sale
 func GetItemsForSale(c *gin.Context) {
 	appG := app.Gin{C: c}
-	items, err := models.GetItemsForSale()
+	items, err := models.GetAllActiveItems()
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.NOT_FOUND, nil)
 		return
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, items)
-}
-
-type Purchase struct {
-	ItemID         int    `json:"item_id"`
-	Email          string `json:"email"`
-	CustName       string `json:"cust_name"`
-	CollectionTime string `json:"collection_time"`
 }
 
 //Submit details for purchasing an item
@@ -60,12 +53,25 @@ func SubmitDetails(c *gin.Context) {
 		return
 	}
 
-	err = models.AddPurchase(&purchase)
+	id, err := models.AddPurchase(&purchase)
 	if err == gorm.ErrRecordNotFound {
-		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
+		appG.Response(http.StatusBadRequest, e.ID_NOT_FOUND, nil)
 		return
 	} else if err != nil {
+		logging.Error("Failed to add purchase: ", err)
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	} else if id == 0 {
+		logging.Error("Failed to add purchase. Id returned 0")
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	logging.Info("Adding purchase items for id: ", id)
+	err = models.AddPurchaseItems(id, purchase.Item)
+	if err != nil {
+		logging.Error("Failed to add purchase data: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		//Need to delete purchase by id here.
 		return
 	}
 	appG.Response(http.StatusCreated, e.CREATED, nil)

@@ -1,14 +1,84 @@
 SET FOREIGN_KEY_CHECKS=0;
+
+-- Allergen table
+-- EG. Gluten, crustaceans, eggs, etc.
+DROP TABLE IF EXISTS `allergens`;
+CREATE TABLE `allergens` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(32) NOT NULL,
+	PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Item category table
+-- EG. Breakfast, lunch, etc
+DROP TABLE IF EXISTS `category`;
+CREATE TABLE `category` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(32) NOT NULL,
+	PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Tag table
+-- EG. Toasted sandwiches, Wraps, etc
+DROP TABLE IF EXISTS `tags`;
+CREATE TABLE `tags` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(32) NOT NULL,
+	PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Items table
-DROP TABLE IF EXISTS `item`;
-CREATE TABLE `item` (
+DROP TABLE IF EXISTS `items`;
+CREATE TABLE `items` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT, 
 	`name` varchar(32) NOT NULL,
 	`description` text,
 	`price` float(8, 2) NOT NULL,
+	`tag` int(10) unsigned,
+	`category` int(10) unsigned NOT NULL,
 	`upload_date` DATE NOT NULL,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
-	PRIMARY KEY (`id`)
+	PRIMARY KEY (`id`),
+	FOREIGN KEY (`tag`) REFERENCES tags (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Item options table
+-- Lists options associated with a menu item. EG. Blueberry/Maple syrup/Bacon pancakes
+DROP TABLE IF EXISTS `item_options`;
+CREATE TABLE `item_options` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`item_id` int(10) unsigned NOT NULL,
+	`opt` varchar(64) NOT NULL,
+	`add_price` float(8, 2) NOT NULL,
+	`upload_date` DATE NOT NULL,
+	`is_del` tinyint(1) NOT NULL DEFAULT 0,
+	PRIMARY KEY (`id`),
+	FOREIGN KEY (`item_id`) REFERENCES items (`id`)
+) ENGINE=InnoDB DEFAULT  CHARSET=utf8;
+
+-- Item size table
+-- Eg Large coffee
+DROP TABLE IF EXISTS `item_sizes`;
+CREATE TABLE `item_sizes` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`item_id` int(10) unsigned NOT NULL,
+	`item_size` varchar(64) NOT NULL,
+	`add_price` float(8, 2) NOT NULL,
+	`upload_date` DATE NOT NULL,
+	`is_del` tinyint(1) NOT NULL DEFAULT 0,
+	PRIMARY KEY (`id`),
+	FOREIGN KEY (`item_id`) REFERENCES items (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Item to allergen table
+DROP TABLE IF EXISTS `item_to_allergens`;
+CREATE TABLE `item_to_allergens` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`allergen_id` int(10) unsigned NOT NULL,
+	`item_id` int(10) unsigned NOT NULL,
+	PRIMARY KEY (`id`),
+	FOREIGN KEY (`allergen_id`) REFERENCES allergens (`id`),
+	FOREIGN KEY (`item_id`) REFERENCES items (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Image table
@@ -19,7 +89,7 @@ CREATE TABLE `image` (
 	`s3_link` varchar(100) NOT NULL,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0, 
 	PRIMARY KEY (`id`),
-	FOREIGN KEY (`item_id`) REFERENCES item (`id`)
+	FOREIGN KEY (`item_id`) REFERENCES items (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Status table
@@ -31,23 +101,37 @@ CREATE TABLE `status` (
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
 -- Purchases table
-DROP TABLE IF EXISTS `purchase`;
-CREATE TABLE `purchase` (
+DROP TABLE IF EXISTS `purchases`;
+CREATE TABLE `purchases` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-	`item_id` int(10) unsigned NOT NULL,
 	`email` varchar(64) NOT NULL,
-	`status` tinyint(3) NOT NULL,
+	`status` tinyint(3) NOT NULL DEFAULT 0,
 	`cust_name` varchar(64) NOT NULL,
 	`date_time` DATETIME NOT NULL, 
 	`collection_time` DATETIME NOT NULL,
 	`notes` varchar(256),
 	PRIMARY KEY (`id`),
-	FOREIGN KEY (`item_id`) REFERENCES item (`id`),
 	FOREIGN KEY (`status`) REFERENCES status (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Purchase items table
+-- Lists all items associated with an order
+DROP TABLE IF EXISTS `purchase_items`;
+CREATE TABLE `purchase_items` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`purchase_id` int(10) unsigned NOT NULL,
+	`item_id` int(10) unsigned NOT NULL,
+	`opt_id` int(10) unsigned, 
+	`size_id` int(10) unsigned,
+	PRIMARY KEY (`id`),
+	FOREIGN KEY (`purchase_id`) REFERENCES purchases (`id`),
+	FOREIGN KEY (`item_id`) REFERENCES items (`id`), 
+	FOREIGN KEY (`opt_id`) REFERENCES item_options (`id`), 
+	FOREIGN KEY (`size_id`) REFERENCES item_sizes (`id`) 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Roles table
 DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles` (
 	`id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT,
@@ -70,14 +154,34 @@ CREATE TABLE `users` (
 
 -- Views
 
+-- Menu view
+CREATE VIEW item_views AS
+	SELECT 
+		items.id, items.name AS item_name, items.description, items.price, 
+		item_options.id AS opt_id, item_options.opt, item_options.add_price AS option_price, 
+		item_sizes.id AS size_id, item_sizes.item_size, item_sizes.add_price AS size_price,
+		category.name AS category,
+		tags.name AS tag
+	FROM 
+		items
+	LEFT JOIN 
+		item_options ON items.id = item_options.item_id 
+	LEFT JOIN 
+		item_sizes ON items.id = item_sizes.item_id
+	LEFT JOIN
+		category ON items.category = category.id
+	LEFT JOIN 
+		tags ON items.tag = tags.id
+	WHERE items.is_del=0;
+
 -- User view
-CREATE VIEW user_view AS
+CREATE VIEW user_views AS
 	SELECT u.id, u.username, r.title
 	FROM users AS u, roles AS r
 	WHERE u.role = r.id AND u.is_del=0;
 
 -- Queue view
-CREATE VIEW queue_view AS
+CREATE VIEW queue_views AS
 	SELECT p.id, i.name, s.description, i.price, p.collection_time, p.cust_name, p.notes, p.date_time AS order_time
 	FROM purchase AS p, item AS i, status AS s
 	WHERE p.item_id = i.id AND p.status=s.id;
@@ -90,6 +194,7 @@ INSERT INTO status (description) VALUES ('Collected');
 INSERT INTO roles (title) VALUES ('Admin');
 INSERT INTO roles (title) VALUES ('Staff');
 
+INSERT INTO allergen (name) VALUES ('Gluten'), ('Crustaceans'), ('Eggs'), ('Fish'), ('Peanuts'), ('Soybeans'), ('Milk'), ('Tree Nuts'), ('Celery'), ('Mustard'), ('Sesame Seeds'), ('Sulphite'), ('Lupin'), ('Molluscs'), ('Coeliac'), ('Coeliac available');
 
 SET FOREIGN_KEY_CHECKS=1;
 

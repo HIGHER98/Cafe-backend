@@ -5,16 +5,23 @@ import (
 	"time"
 )
 
+type PurchaseItems struct {
+	Id         int `json:"id"`
+	PurchaseId int `json:"purchase_id"`
+	ItemId     int `json:"item_id"`
+	SizeId     int `gorm:"default:null" json:"size_id"`
+	OptId      int `gorm:"default:null" json:"opt_id"`
+}
+
 type Purchase struct {
-	Id     int    `json:"id"`
-	ItemId int    `json:"item_id"`
-	Email  string `json:"email"`
-	//Status options: 'Pending transaction', 'Pending', 'Confirmed', 'Delivered'
-	Status         int    `json:"status"`
-	CustName       string `json:"cust_name"`
-	DateTime       string `json:"date_time"`
-	CollectionTime string `json:"collection_time"`
-	Notes          string `json:"notes"`
+	Id             int             `json:"id"`
+	Item           []PurchaseItems `json:"items"`
+	Email          string          `json:"email"`
+	CustName       string          `json:"cust_name"`
+	DateTime       string          `json:"date_time"`
+	CollectionTime string          `json:"collection_time"`
+	Status         int             `json:"status"` //Status options: 'Pending transaction', 'Pending', 'Confirmed', 'Collected'
+	Notes          string          `json:"notes"`
 }
 
 //SELECT * FROM purchase;
@@ -35,17 +42,16 @@ func GetPurchaseById(id int) (*Purchase, error) {
 	return &purchase, nil
 }
 
-//INSERT INTO purchase (item_id, email, status, cust_name, date_time, collection_time) VALUES (?, ?, 1, ?, ?);
-func AddPurchase(data *Purchase) error {
-	logging.Info("Adding purchase: ", data)
-
-	_, err := GetItemById(data.ItemId)
-	if err != nil {
-		return err
+//INSERT INTO purchase (email, status, cust_name, date_time, collection_time) VALUES (?, ?, 1, ?, ?);
+func AddPurchase(data *Purchase) (int, error) {
+	logging.Info("Adding purchase: ", *data)
+	for _, j := range data.Item {
+		err := ValidItemOrder(j.ItemId, j.SizeId, j.OptId)
+		if err != nil {
+			return 0, err
+		}
 	}
-
 	purchase := Purchase{
-		ItemId:         data.ItemId,
 		Email:          data.Email,
 		Status:         PENDING_TRANSACTION,
 		CustName:       data.CustName,
@@ -54,6 +60,18 @@ func AddPurchase(data *Purchase) error {
 		Notes:          data.Notes,
 	}
 	if err := db.Create(&purchase).Error; err != nil {
+		return 0, err
+	}
+	return purchase.Id, nil
+}
+
+func AddPurchaseItems(purchaseId int, items []PurchaseItems) error {
+	logging.Info("Adding items for order: ", purchaseId)
+	for i := range items {
+		items[i].PurchaseId = purchaseId
+	}
+	logging.Info("Adding items: ", items, " for purchase ", purchaseId)
+	if err := db.Create(items).Error; err != nil {
 		return err
 	}
 	return nil
