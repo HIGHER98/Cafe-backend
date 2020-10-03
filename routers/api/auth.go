@@ -36,14 +36,7 @@ func GetAuth(c *gin.Context) {
 		return
 	}
 	json.Unmarshal(inrec, &userInterface)
-	//Below works for test but not Insomnia
-	/*data, err := c.GetRawData()
-	if err != nil {
-		appG.Response(http.StatusBadRequest, e.ERROR, nil)
-		return
-	}
-	var userMap map[string]string
-	json.Unmarshal(data, &userMap)*/
+
 	s, err := models.Check(userInterface["username"].(string), userInterface["password"].(string))
 	if err != nil || !s {
 		appG.Response(http.StatusUnauthorized, e.UNAUTHORIZED, nil)

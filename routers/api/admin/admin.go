@@ -5,18 +5,19 @@ import (
 	"cafe/pkg/app"
 	"cafe/pkg/e"
 	"cafe/pkg/logging"
-	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type Item struct {
 	Name        string  `form:"name"`
 	Description string  `form:"description"`
 	Price       float32 `form:"price"`
+	Category    int     `form:"category"`
+	Tag         int     `form:"tag"`
 }
 
 //Get all live items
@@ -39,22 +40,14 @@ func UpdateItem(c *gin.Context) {
 		return
 	}
 
-	var item Item
+	var item models.Item
 	err = c.Bind(&item)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
 		return
 	}
-	var itemInterface map[string]interface{}
-	inrec, err := json.Marshal(item)
-	if err != nil {
-		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
-		return
-	}
-	json.Unmarshal(inrec, &itemInterface)
-	logging.Debug("Updating item with: ", itemInterface)
 
-	err = models.UpdateItem(id, itemInterface)
+	err = models.UpdateItem(id, item)
 	if err == gorm.ErrRecordNotFound {
 		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
 		return
@@ -69,24 +62,18 @@ func UpdateItem(c *gin.Context) {
 //Add item to the menu
 func AddItem(c *gin.Context) {
 	appG := app.Gin{C: c}
-	var item Item
+	var item models.Item
 	err := c.Bind(&item)
 	if err != nil {
 		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
 		return
 	}
-	var itemInterface map[string]interface{}
-	inrec, err := json.Marshal(item)
-	if err != nil {
-		appG.Response(http.StatusBadRequest, e.MARSHAL_ERROR, nil)
-		return
-	}
-	json.Unmarshal(inrec, &itemInterface)
-	logging.Debug("Adding item: ", itemInterface)
-	err = models.AddItem(itemInterface)
+
+	logging.Debug("Adding item: ", item)
+	err = models.AddItem(item)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		logging.Warn("Failed to create item: ", itemInterface, "\nError: ", err)
+		logging.Warn("Failed to create item: ", item, "\nError: ", err)
 		return
 	}
 	appG.Response(http.StatusCreated, e.CREATED, nil)

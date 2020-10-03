@@ -4,3 +4,4 @@ conf/app.ini
 vendor/*
 runtime/logs/*
 routers/runtime/*
+*.txt

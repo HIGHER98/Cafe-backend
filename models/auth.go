@@ -3,8 +3,8 @@ package models
 import (
 	"cafe/pkg/logging"
 
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type Users struct {

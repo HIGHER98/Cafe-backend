@@ -7,10 +7,12 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-ini/ini v1.61.0
 	github.com/gorilla/websocket v1.4.2
-	github.com/jinzhu/gorm v1.9.16
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
 	gopkg.in/ini.v1 v1.61.0 // indirect
 	gopkg.in/robfig/cron.v1 v1.2.0
+	gorm.io/driver/mysql v1.0.2
+	gorm.io/gorm v1.20.2
 )

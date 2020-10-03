@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type Request struct {
