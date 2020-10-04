@@ -110,12 +110,105 @@ type ItemView struct {
 	Tag         string  `json:"tag"`
 }
 
-func GetAllActiveItems() ([]*ItemView, error) {
+type Options struct {
+	OptId       int     `json:"opt_id"`
+	Opt         string  `json:"opt"`
+	OptionPrice float64 `json:"option_price"`
+}
+
+type Size struct {
+	SizeId    int     `json:"size_id"`
+	ItemSize  string  `json:"item_size"`
+	SizePrice float64 `json:"size_price"`
+}
+
+type ItemOptionList struct {
+	Type []Options `json:"type"`
+	Size []Size    `json:"size"`
+}
+
+type Items struct {
+	Id          int            `json:"id"`
+	ItemName    string         `json:"item_name"`
+	Description string         `json:"description"`
+	Price       float64        `json:"price"`
+	Category    string         `json:"category"`
+	Tag         string         `json:"tag"`
+	Options     ItemOptionList `json:"options"`
+}
+
+func GetAllActiveItems() (map[int]*Items, error) {
 	var items []*ItemView
 	if err := db.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+	m := make(map[int]*Items, len(items))
+	for _, j := range items {
+		if _, ok := m[j.Id]; !ok {
+			m[j.Id] = &Items{
+				Id:          j.Id,
+				ItemName:    j.ItemName,
+				Description: j.Description,
+				Price:       j.Price,
+				Category:    j.Category,
+				Tag:         j.Tag,
+				Options: ItemOptionList{
+					Type: []Options{},
+					Size: []Size{},
+				},
+			}
+			if j.OptId != 0 && !optListed(j.OptId, m[j.Id].Options.Type) {
+				m[j.Id].Options.Type = append(m[j.Id].Options.Type, Options{
+					OptId:       j.OptId,
+					Opt:         j.Opt,
+					OptionPrice: j.OptionPrice,
+				})
+			}
+			if j.SizeId != 0 && !sizeListed(j.SizeId, m[j.Id].Options.Size) {
+				m[j.Id].Options.Size = append(m[j.Id].Options.Size, Size{
+					SizeId:    j.SizeId,
+					ItemSize:  j.ItemSize,
+					SizePrice: j.SizePrice,
+				})
+			}
+		} else {
+			if j.OptId != 0 && !optListed(j.OptId, m[j.Id].Options.Type) {
+				m[j.Id].Options.Type = append(m[j.Id].Options.Type, Options{
+					OptId:       j.OptId,
+					Opt:         j.Opt,
+					OptionPrice: j.OptionPrice,
+				})
+			}
+			if j.SizeId != 0 && !sizeListed(j.SizeId, m[j.Id].Options.Size) {
+				m[j.Id].Options.Size = append(m[j.Id].Options.Size, Size{
+					SizeId:    j.SizeId,
+					ItemSize:  j.ItemSize,
+					SizePrice: j.SizePrice,
+				})
+			}
+		}
+	}
+	return m, nil
+}
+
+//Helper function
+func optListed(id int, o []Options) bool {
+	for _, i := range o {
+		if i.OptId == id {
+			return true
+		}
+	}
+	return false
+}
+
+//Helper function
+func sizeListed(id int, s []Size) bool {
+	for _, i := range s {
+		if i.SizeId == id {
+			return true
+		}
+	}
+	return false
 }
 
 //Returns the item and the available options & sizing options if they exist
