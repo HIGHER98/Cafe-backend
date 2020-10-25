@@ -33,15 +33,15 @@ INSERT INTO item_sizes (item_id, item_size, add_price, upload_date) VALUES (4, "
 INSERT INTO item_sizes (item_id, item_size, add_price, upload_date) VALUES (4, "4 Pancakes", "1", "2020-09-17");
 INSERT INTO item_sizes (item_id, item_size, add_price, upload_date) VALUES (4, "6 Pancakes", "2", "2020-09-17");
 
-INSERT INTO purchases (email, cust_name, date_time, collection_time) VALUES ("garhyer@mail.com","Gary H" , "2020-09-14 00:00:00", "2020-09-20 16:04:00");
-INSERT INTO purchases (email, cust_name, date_time, collection_time) VALUES ("jimihendrix@mail.com","Jimi Hendrix" , "2020-09-14 00:00:00", "2020-09-21 16:04:00");
-INSERT INTO purchases (email, cust_name, date_time, collection_time, notes) VALUES ("richardnixon@mail.com","Richard Nixon" , "2020-09-14 00:00:00", "2020-09-21 17:00:00", "gluten free bread please");
+INSERT INTO purchases (email, cust_name, date_time, collection_time, status) VALUES ("garhyer@mail.com","Gary H" , "2020-09-14 00:00:00", "2020-09-20 16:04:00", 1);
+INSERT INTO purchases (email, cust_name, date_time, collection_time, status) VALUES ("jimihendrix@mail.com","Jimi Hendrix" , "2020-09-14 00:00:00", "2020-09-21 16:04:00", 2);
+INSERT INTO purchases (email, cust_name, date_time, collection_time, notes, status) VALUES ("richardnixon@mail.com","Richard Nixon" , "2020-09-14 00:00:00", "2020-09-21 17:00:00", "gluten free bread please", 3);
 
 INSERT INTO purchase_items (purchase_id, item_id) VALUES (1, 2);
-INSERT INTO purchase_items (purchase_id, item_id, item_options_id) VALUES (1, 2, 1);
+INSERT INTO purchase_items (purchase_id, item_id, opt_id) VALUES (1, 2, 1);
 INSERT INTO purchase_items (purchase_id, item_id) VALUES (2, 3);
-INSERT INTO purchase_items (purchase_id, item_id, item_options_id) VALUES (2, 2, 2);
+INSERT INTO purchase_items (purchase_id, item_id, opt_id) VALUES (2, 2, 2);
 
 -- 6 Blueberry pancakes
-INSERT INTO purchase_items (purchase_id, item_id, item_options_id, item_size_id) VALUES (3, 4, 4, 3);
+INSERT INTO purchase_items (purchase_id, item_id, opt_id, size_id) VALUES (3, 4, 4, 3);
 INSERT INTO purchase_items (purchase_id, item_id) VALUES (3, 3);
