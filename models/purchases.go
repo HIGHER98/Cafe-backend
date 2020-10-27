@@ -22,6 +22,21 @@ type Purchase struct {
 	CollectionTime string          `json:"collection_time"`
 	Status         int             `json:"status"` //Status options: 'Pending transaction', 'Pending', 'Confirmed', 'Collected'
 	Notes          string          `json:"notes"`
+	Uuid           string          `json:"uuid"`
+}
+
+type PurchaseViews struct {
+	PurchaseId      int     `json:"purchase_id"`
+	CustName        string  `json:"cust_name"`
+	Email           string  `json:"email"`
+	Cost            float64 `json:"cost"`
+	DateTime        string  `json:"date_time"`
+	CollectionTime  string  `json:"collection_time"`
+	Notes           string  `json:"notes"`
+	ItemName        string  `json:"item_name"`
+	Opt             string  `json:"opt"`
+	ItemSize        string  `json:"item_size"`
+	PurchaseItemsId int     `json:"purchase_items_id"`
 }
 
 //SELECT * FROM purchase;
@@ -58,11 +73,20 @@ func AddPurchase(data *Purchase) (int, error) {
 		DateTime:       time.Now().Format("2006-01-02 15:04:05"),
 		CollectionTime: data.CollectionTime,
 		Notes:          data.Notes,
+		Uuid:           data.Uuid,
 	}
 	if err := db.Create(&purchase).Error; err != nil {
 		return 0, err
 	}
 	return purchase.Id, nil
+}
+
+func ConfirmPurchase(uuid string) error {
+	logging.Info("Confirming purchase with UUID: ", uuid)
+	if err := db.Model(&Purchase{}).Where("uuid = ? AND status=1", uuid).Update("status", 2).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func AddPurchaseItems(purchaseId int, items []PurchaseItems) error {
@@ -104,6 +128,15 @@ func GetTodaysOrders() ([]*Purchase, error) {
 		return nil, err
 	}
 	return purchase, nil
+}
+
+//SELECT * FROM purchase_views WHERE id=?;
+func GetItemsFromPurchaseView(id int) ([]*PurchaseViews, error) {
+	var purchaseItems []*PurchaseViews
+	if err := db.Where("purchases_id=?", id).Find(&purchaseItems).Error; err != nil {
+		return nil, err
+	}
+	return purchaseItems, nil
 }
 
 //Anonymises data in the purchase table after `days` old

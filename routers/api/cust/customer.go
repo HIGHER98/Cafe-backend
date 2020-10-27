@@ -9,6 +9,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/stripe/stripe-go/v71"
+	"github.com/stripe/stripe-go/v71/checkout/session"
 	"gorm.io/gorm"
 )
 
@@ -77,7 +80,116 @@ func SubmitDetails(c *gin.Context) {
 	appG.Response(http.StatusCreated, e.CREATED, nil)
 }
 
-//Process payment - Speak to paypal - Marks item as sold
-func ProcessPayment(c *gin.Context) {
+//Submit details for purchasing an item
+func SubmitDetailsHelper(purchase *models.Purchase) (int, int, int) {
+	id, err := models.AddPurchase(purchase)
+	if err == gorm.ErrRecordNotFound {
+		return 0, http.StatusBadRequest, e.ID_NOT_FOUND
+	} else if err != nil {
+		logging.Error("Failed to add purchase: ", err)
+		return 0, http.StatusInternalServerError, e.ERROR
+	} else if id == 0 {
+		logging.Error("Failed to add purchase. Id returned 0")
+		return 0, http.StatusInternalServerError, e.ERROR
+	}
+	logging.Info("Adding purchase items for id: ", id)
+	err = models.AddPurchaseItems(id, purchase.Item)
+	if err != nil {
+		logging.Error("Failed to add purchase data: ", err)
+		//Need to delete purchase by id here.
+		return 0, http.StatusInternalServerError, e.ERROR
+	}
+	return id, http.StatusCreated, e.CREATED
+}
 
+type CreateCheckoutSessionResponse struct {
+	SessionID string `json:"id"`
+}
+
+func makeStripeLineItemList(purchaseItems []*models.PurchaseViews) ([]*stripe.CheckoutSessionLineItemParams, error) {
+	var s []*stripe.CheckoutSessionLineItemParams
+	for _, j := range purchaseItems {
+		logging.Info("Iterating through purchaseItems: ", j)
+		s = append(s,
+			&stripe.CheckoutSessionLineItemParams{
+				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+					Currency: stripe.String("eur"),
+					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+						Name: stripe.String(j.ItemName + " " + j.Opt + " " + j.ItemSize),
+					},
+					UnitAmount: stripe.Int64(int64(j.Cost * 100)),
+				},
+				Quantity: stripe.Int64(1),
+			},
+		)
+	}
+	return s, nil
+}
+
+//Process payment - Speak to stripe - Marks item as sold
+func ProcessPayment(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var purchase models.Purchase
+	err := c.Bind(&purchase)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
+		return
+	}
+	uuid := uuid.New().String()
+	purchase.Uuid = uuid
+	purchaseId, status, code := SubmitDetailsHelper(&purchase)
+	if purchaseId == 0 || status != http.StatusCreated || code != e.CREATED {
+		appG.Response(status, code, nil)
+		return
+	}
+
+	p, err := models.GetItemsFromPurchaseView(purchaseId)
+	if err != nil {
+		logging.Error("Failed to get items from purchase_view: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	s, _ := makeStripeLineItemList(p)
+	params := &stripe.CheckoutSessionParams{
+		PaymentMethodTypes: stripe.StringSlice([]string{
+			"card",
+		}),
+		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
+		LineItems:  s,
+		SuccessURL: stripe.String("http://localhost:3000/success/" + uuid),
+		CancelURL:  stripe.String("http://localhost:3000/cancel"),
+	}
+
+	session, err := session.New(params)
+	if err != nil {
+		logging.Error("Failed to create Stripe session: ", err)
+		appG.Response(http.StatusInternalServerError, e.STRIPE_CREATE_SESSION_ERROR, nil)
+		return
+	}
+
+	data := CreateCheckoutSessionResponse{
+		SessionID: session.ID,
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, data)
+}
+
+type paymentSuccess struct {
+	Uuid string `json:"uuid"`
+}
+
+func PaymentSuccess(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var uuid paymentSuccess
+	err := c.Bind(&uuid)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
+		return
+	}
+	err = models.ConfirmPurchase(uuid.Uuid)
+	if err != nil {
+		logging.Error("Failed to confirm purchase with UUID: ", uuid.Uuid, "\t Error: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }

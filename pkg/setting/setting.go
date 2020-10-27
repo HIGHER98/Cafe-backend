@@ -56,6 +56,12 @@ type Cron struct {
 
 var CronSetting = &Cron{}
 
+type Stripe struct {
+	SecretKey string
+}
+
+var StripeSetting = &Stripe{}
+
 var cfg *ini.File
 
 // Setup initialize the configuration instance
@@ -70,6 +76,7 @@ func Setup() {
 	mapTo("server", ServerSetting)
 	mapTo("database", DatabaseSetting)
 	mapTo("cron", CronSetting)
+	mapTo("stripe", StripeSetting)
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second

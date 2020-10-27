@@ -13,6 +13,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stripe/stripe-go/v71"
 )
 
 func init() {
@@ -42,6 +43,7 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
+	stripe.Key = setting.StripeSetting.SecretKey
 	log.Printf("[info] start http server listening %s", endPoint)
 
 	server.ListenAndServe()

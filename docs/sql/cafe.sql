@@ -111,6 +111,7 @@ CREATE TABLE `purchases` (
 	`date_time` DATETIME NOT NULL, 
 	`collection_time` DATETIME NOT NULL,
 	`notes` varchar(256),
+	`uuid` varchar(1) NOT NULL,
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`status`) REFERENCES status (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -185,6 +186,28 @@ CREATE VIEW queue_views AS
 	SELECT p.id, i.name, s.description, i.price, p.collection_time, p.cust_name, p.notes, p.date_time AS order_time
 	FROM purchase AS p, item AS i, status AS s
 	WHERE p.item_id = i.id AND p.status=s.id;
+
+-- Purchase views
+CREATE VIEW purchase_views AS
+SELECT 
+	p.id AS purchases_id, p.cust_name, p.email, p.date_time, p.collection_time, p.notes,
+	item_views.item_name, item_views.opt, item_views.item_size, (item_views.price + IFNULL(item_views.option_price, 0) + IFNULL(item_views.size_price, 0)) AS cost,
+	pi.id AS purchase_items_id
+FROM 
+	purchases AS p, 
+	purchase_items AS pi
+LEFT JOIN
+	item_views ON (
+		pi.item_id = item_views.id AND
+		(pi.opt_id = item_views.opt_id OR ISNULL(pi.opt_id)) AND
+		(pi.size_id = item_views.size_id OR ISNULL(pi.size_id))
+	)
+WHERE 
+	p.id = pi.purchase_id AND 
+	pi.item_id = item_views.id
+ORDER BY p.id ASC;
+
+
 
 INSERT INTO status (description) VALUES ('Pending transaction');
 INSERT INTO status (description) VALUES ('Pending');
