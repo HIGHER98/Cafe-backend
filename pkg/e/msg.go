@@ -9,13 +9,14 @@ var MsgFlags = map[int]string{
 	NOT_FOUND:    "Not Found",
 	ERROR:        "Internal server error",
 
-	USERNAME_TAKEN: "Username taken",
-	MARSHAL_ERROR:  "Internal server error 5001",
-	FAILED_TO_BIND: "Bad request 5002",
-	FAILED_ATOI:    "Bad request 5003",
-	ID_NOT_FOUND:   "Bad request 5004",
-	DELETED:        "Deleted successfully",
-	INVALID_ROLE:   "Invalid role applied",
+	USERNAME_TAKEN:              "Username taken",
+	MARSHAL_ERROR:               "Internal server error 5001",
+	FAILED_TO_BIND:              "Bad request 5002",
+	FAILED_ATOI:                 "Bad request 5003",
+	ID_NOT_FOUND:                "Bad request 5004",
+	DELETED:                     "Deleted successfully",
+	INVALID_ROLE:                "Invalid role applied",
+	STRIPE_CREATE_SESSION_ERROR: "Failed to create stripe session",
 }
 
 // GetMsg get error information based on Code

@@ -6,7 +6,9 @@ import (
 	"cafe/routers/api/admin"
 	"cafe/routers/api/cust"
 	"cafe/routers/api/staff"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,6 +16,14 @@ func InitRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"POST", "PATCH"},
+		AllowHeaders:     []string{"content-type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	r.LoadHTMLFiles("public/index.html")
 	r.GET("/", func(c *gin.Context) {
@@ -23,6 +33,8 @@ func InitRouter() *gin.Engine {
 	r.GET("/items", cust.GetItemsForSale)
 	r.GET("/items/:id", cust.GetItem)
 	r.POST("/purchase", cust.SubmitDetails)
+	r.POST("/create-checkout-session", cust.ProcessPayment)
+	r.POST("/confirmpayment", cust.PaymentSuccess)
 
 	r.POST("/auth", api.GetAuth)
 	//Remove this route for live
