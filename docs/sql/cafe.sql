@@ -192,9 +192,11 @@ CREATE VIEW purchase_views AS
 SELECT 
 	p.id AS purchases_id, p.cust_name, p.email, p.date_time, p.collection_time, p.notes,
 	item_views.item_name, item_views.opt, item_views.item_size, (item_views.price + IFNULL(item_views.option_price, 0) + IFNULL(item_views.size_price, 0)) AS cost,
-	pi.id AS purchase_items_id
+	pi.id AS purchase_items_id,
+	s.description AS status
 FROM 
 	purchases AS p, 
+	status AS s,
 	purchase_items AS pi
 LEFT JOIN
 	item_views ON (
@@ -204,7 +206,8 @@ LEFT JOIN
 	)
 WHERE 
 	p.id = pi.purchase_id AND 
-	pi.item_id = item_views.id
+	pi.item_id = item_views.id AND
+	p.status = s.id
 ORDER BY p.id ASC;
 
 

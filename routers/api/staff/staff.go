@@ -5,10 +5,12 @@ import (
 	"cafe/pkg/app"
 	"cafe/pkg/e"
 	"cafe/pkg/logging"
+	"strconv"
+
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type Order struct {
@@ -48,8 +50,8 @@ func UpdatePurchaseStatus(c *gin.Context) {
 			return
 		}
 	}
-	//If status is pending || confirmed
-	if p.Status == 1 || p.Status == 2 {
+	//If status is not pending payment
+	if p.Status != 1 {
 		go UpdateOrder(O, p)
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
@@ -57,5 +59,26 @@ func UpdatePurchaseStatus(c *gin.Context) {
 
 func GetPurchases(c *gin.Context) {
 	appG := app.Gin{C: c}
-	appG.Response(http.StatusOK, e.SUCCESS, nil)
+	purchases, err := models.GetAllTodayOrActivePurchasesView()
+	if err != nil {
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, purchases)
+}
+
+func GetPurchaseById(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	purchase, err := models.GetItemsFromPurchaseView(id)
+	if err == gorm.ErrRecordNotFound {
+		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
+	} else if err != nil {
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, purchase)
 }

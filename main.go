@@ -46,5 +46,5 @@ func main() {
 	stripe.Key = setting.StripeSetting.SecretKey
 	log.Printf("[info] start http server listening %s", endPoint)
 
-	server.ListenAndServe()
+	server.ListenAndServeTLS("cert.pem", "key.pem")
 }

@@ -18,8 +18,8 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"POST", "PATCH"},
-		AllowHeaders:     []string{"content-type"},
+		AllowMethods:     []string{"GET", "POST", "PATCH"},
+		AllowHeaders:     []string{"content-type", "authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -57,14 +57,19 @@ func InitRouter() *gin.Engine {
 		staff.Wshandler(c.Writer, c.Request)
 	})
 	staffApi := r.Group("/api/staff")
+	staffApi.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PATCH"},
+		AllowHeaders:     []string{"content-type", "authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	staffApi.Use(jwt.JWT())
 	{
 		staffApi.GET("/purchases", staff.GetPurchases)
+		staffApi.GET("/purchase/:id", staff.GetPurchaseById)
 		staffApi.PATCH("/purchase", staff.UpdatePurchaseStatus)
-		/*	staffApi.GET("/ws", func(c *gin.Context){
-			staff.Wshandler(c.Writer, c.Request)
-		})*/
-
 	}
 
 	return r

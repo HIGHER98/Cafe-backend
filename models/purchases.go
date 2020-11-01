@@ -26,7 +26,7 @@ type Purchase struct {
 }
 
 type PurchaseViews struct {
-	PurchaseId      int     `json:"purchase_id"`
+	PurchasesId     int     `json:"purchases_id"`
 	CustName        string  `json:"cust_name"`
 	Email           string  `json:"email"`
 	Cost            float64 `json:"cost"`
@@ -37,6 +37,7 @@ type PurchaseViews struct {
 	Opt             string  `json:"opt"`
 	ItemSize        string  `json:"item_size"`
 	PurchaseItemsId int     `json:"purchase_items_id"`
+	Status          string  `json:"status"`
 }
 
 //SELECT * FROM purchase;
@@ -81,12 +82,18 @@ func AddPurchase(data *Purchase) (int, error) {
 	return purchase.Id, nil
 }
 
-func ConfirmPurchase(uuid string) error {
+//Returns ID, #rowsAffected, error
+func ConfirmPurchase(uuid string) (int, int64, error) {
 	logging.Info("Confirming purchase with UUID: ", uuid)
-	if err := db.Model(&Purchase{}).Where("uuid = ? AND status=1", uuid).Update("status", 2).Error; err != nil {
-		return err
+	var purchase Purchase
+	result := db.Model(&purchase).Where("uuid = ? AND status=1", uuid).Update("status", 2)
+	if result.Error != nil {
+		return 0, 0, result.Error
 	}
-	return nil
+	if err := db.Where("uuid = ?", uuid).Find(&purchase).Error; err != nil {
+		return 0, 0, err
+	}
+	return purchase.Id, result.RowsAffected, nil
 }
 
 func AddPurchaseItems(purchaseId int, items []PurchaseItems) error {
@@ -134,6 +141,16 @@ func GetTodaysOrders() ([]*Purchase, error) {
 func GetItemsFromPurchaseView(id int) ([]*PurchaseViews, error) {
 	var purchaseItems []*PurchaseViews
 	if err := db.Where("purchases_id=?", id).Find(&purchaseItems).Error; err != nil {
+		return nil, err
+	}
+	return purchaseItems, nil
+}
+
+//SELECT * FROM purchase_views;
+func GetAllTodayOrActivePurchasesView() ([]*PurchaseViews, error) {
+	var purchaseItems []*PurchaseViews
+	today := "%" + time.Now().Format("2006-01-02") + "%"
+	if err := db.Where("collection_time LIKE ? AND status NOT LIKE 'Pending transaction'", today).Find(&purchaseItems).Error; err != nil {
 		return nil, err
 	}
 	return purchaseItems, nil

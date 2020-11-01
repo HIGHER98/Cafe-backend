@@ -5,8 +5,11 @@ import (
 	"cafe/pkg/app"
 	"cafe/pkg/e"
 	"cafe/pkg/logging"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"cafe/routers/api/staff"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -156,8 +159,8 @@ func ProcessPayment(c *gin.Context) {
 		}),
 		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
 		LineItems:  s,
-		SuccessURL: stripe.String("http://localhost:3000/success/" + uuid),
-		CancelURL:  stripe.String("http://localhost:3000/cancel"),
+		SuccessURL: stripe.String("http://192.168.8.105:5000/success/" + uuid),
+		CancelURL:  stripe.String("http://192.168.8.105:5000/cancel"),
 	}
 
 	session, err := session.New(params)
@@ -185,11 +188,26 @@ func PaymentSuccess(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
 		return
 	}
-	err = models.ConfirmPurchase(uuid.Uuid)
+	id, rowsAffected, err := models.ConfirmPurchase(uuid.Uuid)
 	if err != nil {
 		logging.Error("Failed to confirm purchase with UUID: ", uuid.Uuid, "\t Error: ", err)
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
+	} else if id == 0 {
+		logging.Error("Id returned 0 when confirming purchase")
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
 	}
+	//If it's a new purchase and not just someone refreshing the page
+	//TODO: Only send if it's an order for today
+	if rowsAffected != 0 {
+		fmt.Println("Before updating order in customer")
+		go func(id int) {
+			order := staff.Order{Id: id, Status: 1}
+			staff.UpdateOrder(staff.O, order)
+		}(id)
+
+	}
+	fmt.Println("After updating order in customer")
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
