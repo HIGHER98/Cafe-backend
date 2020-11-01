@@ -5,7 +5,6 @@ import (
 	"cafe/pkg/app"
 	"cafe/pkg/e"
 	"cafe/pkg/logging"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -201,13 +200,11 @@ func PaymentSuccess(c *gin.Context) {
 	//If it's a new purchase and not just someone refreshing the page
 	//TODO: Only send if it's an order for today
 	if rowsAffected != 0 {
-		fmt.Println("Before updating order in customer")
 		go func(id int) {
 			order := staff.Order{Id: id, Status: 1}
 			staff.UpdateOrder(staff.O, order)
 		}(id)
 
 	}
-	fmt.Println("After updating order in customer")
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }

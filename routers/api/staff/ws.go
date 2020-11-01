@@ -6,7 +6,6 @@ import (
 	"cafe/pkg/logging"
 	"cafe/pkg/util"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -54,8 +53,6 @@ func respReq(req string) []byte {
 		logging.Error("Failed to marshal response: ", err)
 		return nil
 	}
-	fmt.Println("Have response written")
-	fmt.Println(b)
 	return b
 }
 
@@ -85,11 +82,7 @@ func wsWriter(conn *websocket.Conn, order chan Order) {
 		select {
 		case o := <-order:
 			if auth {
-				logging.Info("Order has been updated")
-				fmt.Println("Updating order")
-				fmt.Println(o)
 				conn.WriteMessage(websocket.TextMessage, respSuccess(o))
-				fmt.Println("Written")
 			}
 		case <-time.After(5 * 60 * time.Second):
 			auth = false
@@ -115,7 +108,6 @@ func wsReader(conn *websocket.Conn) {
 			logging.Error("Failed to read request: ", err)
 			continue
 		}
-		fmt.Println(time.Now().Format(time.ANSIC), "Got a message: ", r.Req, "\t", r.Data)
 
 		if !auth && strings.Compare(r.Req, "auth") != 0 {
 			conn.WriteMessage(websocket.TextMessage, respReq("auth"))
@@ -124,7 +116,6 @@ func wsReader(conn *websocket.Conn) {
 
 		switch r.Req {
 		case "auth":
-			logging.Info("Checking auth")
 			token := r.Data["token"].(string)
 			_, err := util.ParseToken(token)
 			if err != nil {
@@ -134,7 +125,6 @@ func wsReader(conn *websocket.Conn) {
 				}
 			}
 			auth = true
-			logging.Info("Successfully authenticated client's websocket connection")
 			conn.WriteMessage(websocket.TextMessage, respSuccess(nil))
 
 		case "update":
@@ -157,7 +147,6 @@ func wsReader(conn *websocket.Conn) {
 			//If not setting status to 'Processing payment'
 			if reply.Status != 1 {
 				go UpdateOrder(O, reply)
-				logging.Info("Successfully updated order through websockets")
 			}
 
 		case "ping":
