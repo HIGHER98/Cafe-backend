@@ -6,7 +6,6 @@ import (
 	"cafe/pkg/logging"
 	"cafe/pkg/util"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -54,8 +53,6 @@ func respReq(req string) []byte {
 		logging.Error("Failed to marshal response: ", err)
 		return nil
 	}
-	fmt.Println("Have response written")
-	fmt.Println(b)
 	return b
 }
 
@@ -86,10 +83,7 @@ func wsWriter(conn *websocket.Conn, order chan Order) {
 		case o := <-order:
 			if auth {
 				logging.Info("Order has been updated")
-				fmt.Println("Updating order")
-				fmt.Println(o)
 				conn.WriteMessage(websocket.TextMessage, respSuccess(o))
-				fmt.Println("Written")
 			}
 		case <-time.After(5 * 60 * time.Second):
 			auth = false
@@ -115,7 +109,6 @@ func wsReader(conn *websocket.Conn) {
 			logging.Error("Failed to read request: ", err)
 			continue
 		}
-		fmt.Println(time.Now().Format(time.ANSIC), "Got a message: ", r.Req, "\t", r.Data)
 
 		if !auth && strings.Compare(r.Req, "auth") != 0 {
 			conn.WriteMessage(websocket.TextMessage, respReq("auth"))
