@@ -14,7 +14,7 @@ import (
 func JWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		code := e.SUCCESS
-		token := c.Query("token")
+		token := c.GetHeader("Authorization")
 		if token == "" {
 			code = e.UNAUTHORIZED
 		} else {

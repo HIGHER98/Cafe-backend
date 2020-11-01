@@ -57,11 +57,13 @@ func respReq(req string) []byte {
 }
 
 var wsupgrader = websocket.Upgrader{
+	//Allow any origin
+	CheckOrigin:     func(r *http.Request) bool { return true },
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-var a bool = false
+var auth bool = false
 
 func Wshandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := wsupgrader.Upgrade(w, r, nil)
@@ -69,74 +71,93 @@ func Wshandler(w http.ResponseWriter, r *http.Request) {
 		logging.Error("Failed to set websocket upgrade: %v", err)
 		return
 	}
-
+	logging.Info("Connected websocket to remote client on: ", conn.RemoteAddr())
 	go wsWriter(conn, O)
+	go wsReader(conn)
+}
+
+func wsWriter(conn *websocket.Conn, order chan Order) {
+	conn.WriteMessage(websocket.TextMessage, respReq("auth"))
 	for {
-		t, _, err := conn.ReadMessage()
+		select {
+		case o := <-order:
+			if auth {
+				conn.WriteMessage(websocket.TextMessage, respSuccess(o))
+			}
+		case <-time.After(5 * 60 * time.Second):
+			auth = false
+			conn.WriteMessage(websocket.TextMessage, respReq("auth"))
+		}
+	}
+}
+
+func wsReader(conn *websocket.Conn) {
+	for {
+		t, p, err := conn.ReadMessage()
 		if err != nil {
 			logging.Error("Failed to read websocket connection: ", err)
 			break
 		}
-
+		if t != websocket.TextMessage {
+			conn.WriteMessage(websocket.TextMessage, respErr(e.BAD_REQUEST))
+			continue
+		}
 		var r Request
-		err = conn.ReadJSON(&r)
+		err = json.Unmarshal(p, &r)
 		if err != nil {
 			logging.Error("Failed to read request: ", err)
 			continue
 		}
-		if !a && strings.Compare(r.Req, "auth") != 0 {
+
+		if !auth && strings.Compare(r.Req, "auth") != 0 {
 			conn.WriteMessage(websocket.TextMessage, respReq("auth"))
-			/*if err = conn.Close(); err != nil {
-				logging.Error("Failed to close websocket connection: ", err)
-				break
-			}*/
 			continue
 		}
+
 		switch r.Req {
 		case "auth":
 			token := r.Data["token"].(string)
 			_, err := util.ParseToken(token)
 			if err != nil {
-				conn.WriteMessage(t, respErr(e.UNAUTHORIZED))
-				continue
+				conn.WriteMessage(websocket.TextMessage, respErr(e.UNAUTHORIZED))
+				if err = conn.Close(); err != nil {
+					logging.Error("Failed to close websocket connection: ", err)
+				}
 			}
-			a = true
-			conn.WriteMessage(t, respSuccess(nil))
+			auth = true
+			conn.WriteMessage(websocket.TextMessage, respSuccess(nil))
+
 		case "update":
+			if r.Data["status"] == 1 {
+				conn.WriteMessage(websocket.TextMessage, respErr(e.BAD_REQUEST))
+				break
+			}
 			var reply = Order{Id: int(r.Data["id"].(float64)), Status: int(r.Data["status"].(float64))}
 			err = models.UpdatePurchaseStatus(reply.Id, reply.Status)
 			if err != nil {
 				switch err {
 				case gorm.ErrRecordNotFound:
-					conn.WriteMessage(t, respErr(e.ID_NOT_FOUND))
+					conn.WriteMessage(websocket.TextMessage, respErr(e.ID_NOT_FOUND))
 				default:
 					logging.Error(err)
-					conn.WriteMessage(t, respErr(e.ERROR))
+					conn.WriteMessage(websocket.TextMessage, respErr(e.ERROR))
 				}
 				continue
 			}
-			if reply.Status == 1 || reply.Status == 2 {
+			//If not setting status to 'Processing payment'
+			if reply.Status != 1 {
 				go UpdateOrder(O, reply)
 			}
-			logging.Info("Successfully updated order through websockets")
+
 		case "ping":
 			conn.WriteMessage(websocket.TextMessage, []byte("pong"))
+
 		default:
-
+			if err = conn.Close(); err != nil {
+				logging.Error("Failed to close websocket connection: ", err)
+			}
 		}
-	}
-}
 
-func wsWriter(conn *websocket.Conn, order chan Order) {
-	for {
-		select {
-		case o := <-order:
-			logging.Info("Order has been updated")
-			conn.WriteMessage(websocket.TextMessage, respSuccess(o))
-		case <-time.After(5 * 60 * time.Second):
-			a = false
-			conn.WriteMessage(websocket.TextMessage, respReq("auth"))
-		}
 	}
 
 }

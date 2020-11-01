@@ -1,7 +1,15 @@
 conf/*
 conf/app.ini
 *.swp
+*.swo
 vendor/*
 runtime/logs/*
 routers/runtime/*
 *.txt
+*.pem
+profile
+profile/*
+runtime
+runtime/*
+cafe
+bashTests/
