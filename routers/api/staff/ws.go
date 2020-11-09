@@ -7,6 +7,7 @@ import (
 	"cafe/pkg/util"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -77,10 +78,12 @@ func Wshandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func wsWriter(conn *websocket.Conn, order chan Order) {
+	logging.Debug("In wsWriter for connection: ", conn.RemoteAddr())
 	conn.WriteMessage(websocket.TextMessage, respReq("auth"))
 	for {
 		select {
 		case o := <-order:
+			logging.Debug("Updating order channel with o: ", o, " to client: ", conn.RemoteAddr())
 			if auth {
 				conn.WriteMessage(websocket.TextMessage, respSuccess(o))
 			}
@@ -92,6 +95,7 @@ func wsWriter(conn *websocket.Conn, order chan Order) {
 }
 
 func wsReader(conn *websocket.Conn) {
+	logging.Debug("In wsReader for ", conn.RemoteAddr())
 	for {
 		t, p, err := conn.ReadMessage()
 		if err != nil {
@@ -99,6 +103,7 @@ func wsReader(conn *websocket.Conn) {
 			break
 		}
 		if t != websocket.TextMessage {
+			logging.Debug("Not a websocket text message. Instead type: ", t, " for client: ", conn.RemoteAddr())
 			conn.WriteMessage(websocket.TextMessage, respErr(e.BAD_REQUEST))
 			continue
 		}
@@ -116,23 +121,43 @@ func wsReader(conn *websocket.Conn) {
 
 		switch r.Req {
 		case "auth":
-			token := r.Data["token"].(string)
+			token, ok := r.Data["token"].(string)
+			if !ok {
+				logging.Error("Failed to get token")
+				break
+			}
 			_, err := util.ParseToken(token)
 			if err != nil {
-				conn.WriteMessage(websocket.TextMessage, respErr(e.UNAUTHORIZED))
+				if err = conn.WriteMessage(websocket.TextMessage, respErr(e.UNAUTHORIZED)); err != nil {
+					logging.Error("Failed to write message: ", err)
+				}
 				if err = conn.Close(); err != nil {
 					logging.Error("Failed to close websocket connection: ", err)
 				}
 			}
 			auth = true
 			conn.WriteMessage(websocket.TextMessage, respSuccess(nil))
+			logging.Debug(conn.RemoteAddr(), " has been successfully authenticated")
 
 		case "update":
+			//Ensuring it's a valid update
 			if r.Data["status"] == 1 {
-				conn.WriteMessage(websocket.TextMessage, respErr(e.BAD_REQUEST))
-				break
+				if err := conn.WriteMessage(websocket.TextMessage, respErr(e.BAD_REQUEST)); err != nil {
+					logging.Error("Failed to write websocket: ", err)
+					break
+				}
 			}
-			var reply = Order{Id: int(r.Data["id"].(float64)), Status: int(r.Data["status"].(float64))}
+			logging.Info(r.Data)
+			id := int(r.Data["id"].(float64))
+			//Usual typecasting was not working on status for some reason
+			status, err := strconv.Atoi(r.Data["status"].(string))
+			if err != nil {
+				logging.Error("Failed to case status to string: ", err)
+				conn.WriteMessage(websocket.TextMessage, respErr(e.BAD_REQUEST))
+				continue
+			}
+			user := int(r.Data["user"].(float64))
+			reply := Order{Id: id, Status: status}
 			err = models.UpdatePurchaseStatus(reply.Id, reply.Status)
 			if err != nil {
 				switch err {
@@ -144,10 +169,14 @@ func wsReader(conn *websocket.Conn) {
 				}
 				continue
 			}
-			//If not setting status to 'Processing payment'
-			if reply.Status != 1 {
-				go UpdateOrder(O, reply)
+			err = models.AddPurchaseActivity(id, status, user)
+			if err != nil {
+				logging.Error("Failed to add purchase activity: ", err)
 			}
+			go func(orderChan chan Order, order Order) {
+				logging.Debug("Updating channel in anonymous function: ", orderChan, ", Order:", order, " for connection: ", conn.RemoteAddr())
+				UpdateOrder(orderChan, order)
+			}(O, reply)
 
 		case "ping":
 			conn.WriteMessage(websocket.TextMessage, []byte("pong"))

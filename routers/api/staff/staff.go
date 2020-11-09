@@ -26,7 +26,8 @@ func InitOrders() {
 
 //Signals websocket connections of an update to an order
 func UpdateOrder(o chan Order, p Order) {
-	o <- p
+	logging.Debug("An order is being updated: Channel: ", o, " Order: ", p)
+	O <- p
 }
 
 func UpdatePurchaseStatus(c *gin.Context) {

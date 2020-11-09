@@ -70,6 +70,7 @@ func InitRouter() *gin.Engine {
 		staffApi.GET("/purchases", staff.GetPurchases)
 		staffApi.GET("/purchase/:id", staff.GetPurchaseById)
 		staffApi.PATCH("/purchase", staff.UpdatePurchaseStatus)
+		staffApi.GET("/staff", api.GetStaffMembers)
 	}
 
 	return r

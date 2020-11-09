@@ -18,11 +18,10 @@ type Users struct {
 //SELECT id, password, role FROM users WHERE username=? AND is_del=0 LIMIT 1;
 func Check(username, password string) (bool, error) {
 	var user Users
-	err := db.Select("id, password, role").Where(Users{Username: username, IsDel: 0}).First(&user).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err := db.Select("id, password, role").Where(Users{Username: username, IsDel: 0}).First(&user).Error; err != nil {
 		return false, err
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return false, err
 	}
 
@@ -136,4 +135,17 @@ func GetActiveUsers() ([]*UserView, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+type Staff struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+func GetStaff() ([]*Staff, error) {
+	var staff []*Staff
+	if err := db.Where("is_del=0").Find(&staff).Error; err != nil {
+		return nil, err
+	}
+	return staff, nil
 }
