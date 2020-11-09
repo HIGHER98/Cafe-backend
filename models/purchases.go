@@ -2,6 +2,7 @@ package models
 
 import (
 	"cafe/pkg/logging"
+	"errors"
 	"time"
 )
 
@@ -115,8 +116,10 @@ func UpdatePurchaseStatus(id, status int) error {
 		return err
 	}
 	s, err := GetStatus(status)
-	if s == nil || err != nil {
+	if err != nil {
 		return err
+	} else if s == nil {
+		return errors.New("Invalid status")
 	}
 
 	if err = db.Model(&purchase).Where("id=?", id).Update("status", status).Error; err != nil {
@@ -162,6 +165,22 @@ func Anonymise(days int) error {
 	t := time.Now().AddDate(0, 0, (days * -1)).Format("2006-01-02")
 	logging.Debug("Anonymising since: ", t)
 	if err := db.Model(Purchase{}).Where("date_time <= ?", t).Updates(Purchase{CustName: "Anonymised", Email: "Anonymised"}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+type PurchaseActivities struct {
+	Id         int    `json:"id"`
+	PurchaseId int    `json:"purchase_id"`
+	StatusSet  int    `json:"status_set"`
+	SetBy      int    `json:"set_by"`
+	UpdatedAt  string `json:"updated_at"`
+}
+
+func AddPurchaseActivity(purchaseId, status, setBy int) error {
+	purchaseActivity := PurchaseActivities{PurchaseId: purchaseId, StatusSet: status, SetBy: setBy, UpdatedAt: time.Now().Format("2006-01-02 15:04:05")}
+	if err := db.Create(&purchaseActivity).Error; err != nil {
 		return err
 	}
 	return nil

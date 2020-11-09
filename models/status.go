@@ -13,6 +13,15 @@ type Status struct {
 	IsDel       int    `json:"is_del"`
 }
 
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by User to `profiles`
+func (Status) TableName() string {
+	return "status"
+}
+
 //INSERT INTO TABLE status (description) VALUES (?);
 func AddStatus(desc string) error {
 	newStatus := Status{Description: desc}
