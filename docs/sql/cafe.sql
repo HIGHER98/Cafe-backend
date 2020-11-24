@@ -36,7 +36,7 @@ CREATE TABLE `items` (
 	`price` float(8, 2) NOT NULL,
 	`tag` int(10) unsigned,
 	`category` int(10) unsigned NOT NULL,
-	`upload_date` DATE NOT NULL,
+	`upload_date` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`tag`) REFERENCES tags (`id`)
