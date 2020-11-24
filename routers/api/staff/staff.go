@@ -4,6 +4,7 @@ import (
 	"cafe/models"
 	"cafe/pkg/app"
 	"cafe/pkg/e"
+	"cafe/pkg/logging"
 	"strconv"
 
 	"net/http"
@@ -36,4 +37,15 @@ func GetPurchaseById(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, purchase)
+}
+
+func GetStatuses(c *gin.Context) {
+	appG := app.Gin{C: c}
+	s, err := models.GetStatuses()
+	if err != nil {
+		logging.Error("Error retrieving status': ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, s)
 }

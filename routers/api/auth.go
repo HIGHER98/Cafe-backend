@@ -33,12 +33,8 @@ func GetAuth(c *gin.Context) {
 	s, err := models.Check(user.Username, user.Password)
 	if err == gorm.ErrRecordNotFound {
 		appG.Response(http.StatusUnauthorized, e.UNAUTHORIZED, nil)
-	} else if err != nil {
-		logging.Error("Error in loggin in: ", err)
-		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		return
-	}
-	if !s {
+	} else if err != nil || !s {
+		logging.Error("Error in logging in: ", err)
 		appG.Response(http.StatusUnauthorized, e.UNAUTHORIZED, nil)
 		return
 	}
