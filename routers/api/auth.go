@@ -11,6 +11,7 @@ import (
 	"cafe/pkg/util"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -29,24 +30,18 @@ func GetAuth(c *gin.Context) {
 		return
 	}
 
-	var userInterface map[string]interface{}
-	inrec, err := json.Marshal(user)
-	if err != nil {
-		appG.Response(http.StatusBadRequest, e.MARSHAL_ERROR, nil)
-		return
-	}
-	json.Unmarshal(inrec, &userInterface)
-
-	s, err := models.Check(userInterface["username"].(string), userInterface["password"].(string))
-	if err != nil || !s {
+	s, err := models.Check(user.Username, user.Password)
+	if err == gorm.ErrRecordNotFound {
+		appG.Response(http.StatusUnauthorized, e.UNAUTHORIZED, nil)
+	} else if err != nil || !s {
+		logging.Error("Error in logging in: ", err)
 		appG.Response(http.StatusUnauthorized, e.UNAUTHORIZED, nil)
 		return
 	}
-
-	token, err := util.GenerateToken(userInterface["username"].(string), userInterface["password"].(string))
+	token, err := util.GenerateToken(user.Username, user.Password)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		logging.Error(err)
+		logging.Error("Failed to generate token: ", err)
 		return
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
@@ -89,4 +84,15 @@ func CreateUser(c *gin.Context) {
 	}
 	appG.Response(http.StatusCreated, e.CREATED, nil)
 	//Frontend should redirect to GetAuth function on 201 code
+}
+
+func GetStaffMembers(c *gin.Context) {
+	appG := app.Gin{C: c}
+	staff, err := models.GetStaff()
+	if err != nil {
+		logging.Error("Failed to get staff members: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, staff)
 }

@@ -36,7 +36,7 @@ CREATE TABLE `items` (
 	`price` float(8, 2) NOT NULL,
 	`tag` int(10) unsigned,
 	`category` int(10) unsigned NOT NULL,
-	`upload_date` DATE NOT NULL,
+	`upload_date` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`tag`) REFERENCES tags (`id`)
@@ -101,6 +101,15 @@ CREATE TABLE `status` (
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- Staff table
+DROP TABLE IF EXISTS `staffs`;
+CREATE TABLE `staffs` (
+	`id` int(10) NOT NULL AUTO_INCREMENT,
+	`name` varchar(64) NOT NULL,
+	`is_del` tinyint(1) NOT NULL DEFAULT 0,
+	PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Purchases table
 DROP TABLE IF EXISTS `purchases`;
 CREATE TABLE `purchases` (
@@ -114,6 +123,18 @@ CREATE TABLE `purchases` (
 	`uuid` varchar(1) NOT NULL,
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`status`) REFERENCES status (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `purchase_activities`;
+CREATE TABLE `purchase_activities` (
+	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+	`purchase_id` int(10) unsigned NOT NULL,
+	`status_set` tinyint(3) NOT NULL,
+	`set_by` int(10) NOT NULL,
+	`updated_at` DATETIME NOT NULL,
+	PRIMARY KEY (`id`),
+	FOREIGN KEY (`status_set`) REFERENCES status (`id`),
+	FOREIGN KEY (`set_by`) REFERENCES staffs (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Purchase items table

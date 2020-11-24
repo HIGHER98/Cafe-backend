@@ -10,7 +10,15 @@ const (
 type Status struct {
 	Id          int    `json:"id"`
 	Description string `json:"description"`
-	IsDel       int    `json:"is_del"`
+}
+
+type Tabler interface {
+	TableName() string
+}
+
+// TableName overrides the table name used by User to `profiles`
+func (Status) TableName() string {
+	return "status"
 }
 
 //INSERT INTO TABLE status (description) VALUES (?);
@@ -37,4 +45,12 @@ func DeleteStatus(id int) error {
 	}
 	db.Model(&status).Update("is_del", 1)
 	return err
+}
+
+func GetStatuses() ([]*Status, error) {
+	var s []*Status
+	if err := db.Select("id", "description").Where("is_del=0").Find(&s).Error; err != nil {
+		return nil, err
+	}
+	return s, nil
 }
