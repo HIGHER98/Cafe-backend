@@ -160,7 +160,7 @@ func PaymentSuccess(c *gin.Context) {
 		return
 	} else if id == 0 {
 		logging.Error("Id returned 0 when confirming purchase")
-		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
 		return
 	}
 	//If it's a new purchase and not just someone refreshing the page

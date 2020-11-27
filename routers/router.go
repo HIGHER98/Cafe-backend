@@ -32,7 +32,6 @@ func InitRouter() *gin.Engine {
 	//public routes
 	r.GET("/items", cust.GetItemsForSale)
 	r.GET("/items/:id", cust.GetItem)
-	r.POST("/purchase", cust.SubmitDetails)
 	r.POST("/create-checkout-session", cust.ProcessPayment)
 	r.POST("/confirmpayment", cust.PaymentSuccess)
 
