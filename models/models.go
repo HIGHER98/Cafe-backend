@@ -12,6 +12,10 @@ import (
 
 var db *gorm.DB
 
+type Tabler interface {
+	TableName() string
+}
+
 // Initialize database instance
 func Setup() {
 	var err error
