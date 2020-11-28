@@ -2,7 +2,7 @@ package models
 
 type Tag struct {
 	Id   int    `json:"id"`
-	Name string `json:"Name"`
+	Name string `json:"name"`
 }
 
 func GetTagById(id int) (*Tag, error) {
@@ -30,7 +30,7 @@ func AddTag(name string) error {
 }
 
 func EditTag(id int, name string) error {
-	if err := db.Where("id=?", id).Update("name", name).Error; err != nil {
+	if err := db.Model(&Tag{}).Where("id=?", id).Update("name", name).Error; err != nil {
 		return err
 	}
 	return nil

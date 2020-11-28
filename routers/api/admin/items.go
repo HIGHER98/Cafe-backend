@@ -148,19 +148,67 @@ func PatchCategory(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
 
+//TODO
 func DeleteCategories(c *gin.Context) {
 
 }
 
-func GetTags(c *gin.Context)    {}
-func AddTags(c *gin.Context)    {}
-func PatchTags(c *gin.Context)  {}
-func DeleteTags(c *gin.Context) {}
+func GetTags(c *gin.Context) {
+	appG := app.Gin{C: c}
+	tags, err := models.GetAllTags()
+	if err != nil {
+		logging.Error("Failed to get tags: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, tags)
+}
 
+func AddTag(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var tag models.Tag
+	err := c.Bind(&tag)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	err = models.AddTag(tag.Name)
+	if err != nil {
+		logging.Error("Failed to add tag: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusCreated, e.CREATED, nil)
+}
+
+func PatchTag(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	var tag models.Tag
+	err = c.Bind(&tag)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	err = models.EditTag(id, tag.Name)
+	if err != nil {
+		logging.Error("Failed to edit tag: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
+func DeleteTag(c *gin.Context) {}
+
+//Add/Delete tags for a specific item
 func AddItemTags(c *gin.Context)    {}
 func DeleteItemTags(c *gin.Context) {}
 
-//Should these do options as well
+//Should these do options as well??
 func AddItemOptions(c *gin.Context)    {}
 func PatchItemOptions(c *gin.Context)  {}
 func DeleteItemOptions(c *gin.Context) {}

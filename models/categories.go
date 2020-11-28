@@ -1,7 +1,5 @@
 package models
 
-import "cafe/pkg/logging"
-
 // TableName overrides the table name
 func (Category) TableName() string {
 	return "category"
