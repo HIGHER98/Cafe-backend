@@ -98,7 +98,17 @@ func DelItem(c *gin.Context) {
 	appG.Response(http.StatusOK, e.DELETED, nil)
 }
 
-func GetCategories(c *gin.Context)    {}
+func GetCategories(c *gin.Context) {
+	appG := app.Gin{C: c}
+	categories, err := models.GetAllCategories()
+	if err != nil {
+		logging.Error("Failed to get categories: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, categories)
+}
+
 func AddCategories(c *gin.Context)    {}
 func PatchCategories(c *gin.Context)  {}
 func DeleteCategories(c *gin.Context) {}
