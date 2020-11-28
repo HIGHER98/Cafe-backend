@@ -51,6 +51,10 @@ func InitRouter() *gin.Engine {
 		adminApi.GET("/users", admin.GetUsers)
 		adminApi.DELETE("/user/:id", admin.DelUser)
 		adminApi.PATCH("/user/:id", admin.UpdateUserRole)
+
+		adminApi.GET("/categories", admin.GetCategories)
+		adminApi.POST("/category", admin.AddCategory)
+		adminApi.PATCH("/category/:id", admin.PatchCategory)
 	}
 	r.GET("/ws", func(c *gin.Context) {
 		staff.Wshandler(c.Writer, c.Request)

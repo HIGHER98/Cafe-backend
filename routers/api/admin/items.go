@@ -109,9 +109,48 @@ func GetCategories(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, categories)
 }
 
-func AddCategories(c *gin.Context)    {}
-func PatchCategories(c *gin.Context)  {}
-func DeleteCategories(c *gin.Context) {}
+func AddCategory(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var category models.Category
+	err := c.Bind(&category)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	err = models.AddCategory(category.Name)
+	if err != nil {
+		logging.Error("Failed to add category: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusCreated, e.CREATED, nil)
+}
+
+func PatchCategory(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	var category models.Category
+	err = c.Bind(&category)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	err = models.EditCategory(id, category.Name)
+	if err != nil {
+		logging.Error("Failed to edit category: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
+
+func DeleteCategories(c *gin.Context) {
+
+}
 
 func GetTags(c *gin.Context)    {}
 func AddTags(c *gin.Context)    {}

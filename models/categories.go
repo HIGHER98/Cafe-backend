@@ -1,5 +1,7 @@
 package models
 
+import "cafe/pkg/logging"
+
 // TableName overrides the table name
 func (Category) TableName() string {
 	return "category"
@@ -7,7 +9,7 @@ func (Category) TableName() string {
 
 type Category struct {
 	Id   int    `json:"id"`
-	Name string `json:"Name"`
+	Name string `json:"name"`
 }
 
 func GetCategoryById(id int) (*Category, error) {
@@ -35,7 +37,7 @@ func AddCategory(name string) error {
 }
 
 func EditCategory(id int, name string) error {
-	if err := db.Where("id=?", id).Update("name", name).Error; err != nil {
+	if err := db.Model(&Category{}).Where("id=?", id).Update("name", name).Error; err != nil {
 		return err
 	}
 	return nil
