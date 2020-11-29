@@ -106,7 +106,9 @@ type ItemView struct {
 	SizeId      int     `json:"size_id"`
 	ItemSize    string  `json:"item_size"`
 	SizePrice   float64 `json:"size_price"`
+	CategoryId  int     `json:"category_id"`
 	Category    string  `json:"category"`
+	TagId       int     `json:"tag_id"`
 	Tag         string  `json:"tag"`
 }
 
@@ -135,6 +137,8 @@ type Items struct {
 	Category    string         `json:"category"`
 	Tag         string         `json:"tag"`
 	Options     ItemOptionList `json:"options"`
+	CategoryId  int            `json:"category_id"`
+	TagId       int            `json:"tag_id"`
 }
 
 func GetAllActiveItems() (map[int]*Items, error) {
@@ -152,6 +156,8 @@ func GetAllActiveItems() (map[int]*Items, error) {
 				Price:       j.Price,
 				Category:    j.Category,
 				Tag:         j.Tag,
+				CategoryId:  j.CategoryId,
+				TagId:       j.TagId,
 				Options: ItemOptionList{
 					Type: []Options{},
 					Size: []Size{},

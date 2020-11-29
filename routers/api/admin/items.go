@@ -7,6 +7,7 @@ import (
 	"cafe/pkg/logging"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -154,6 +155,7 @@ func DeleteCategories(c *gin.Context) {
 }
 
 func GetTags(c *gin.Context) {
+	time.Sleep(time.Second * 20)
 	appG := app.Gin{C: c}
 	tags, err := models.GetAllTags()
 	if err != nil {
@@ -202,6 +204,8 @@ func PatchTag(c *gin.Context) {
 	}
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
+
+//TODO
 func DeleteTag(c *gin.Context) {}
 
 //Add/Delete tags for a specific item

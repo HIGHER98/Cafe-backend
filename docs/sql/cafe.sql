@@ -179,7 +179,7 @@ CREATE TABLE `users` (
 -- Menu view
 CREATE VIEW item_views AS
 	SELECT 
-		items.id, items.name AS item_name, items.description, items.price, 
+		items.id, items.name AS item_name, items.description, items.price,  items.category AS category_id, items.tag AS tag_id,
 		item_options.id AS opt_id, item_options.opt, item_options.add_price AS option_price, 
 		item_sizes.id AS size_id, item_sizes.item_size, item_sizes.add_price AS size_price,
 		category.name AS category,
@@ -195,12 +195,6 @@ CREATE VIEW item_views AS
 	LEFT JOIN 
 		tags ON items.tag = tags.id
 	WHERE items.is_del=0;
-
--- User view
-CREATE VIEW user_views AS
-	SELECT u.id, u.username, r.title
-	FROM users AS u, roles AS r
-	WHERE u.role = r.id AND u.is_del=0;
 
 -- Queue view
 CREATE VIEW queue_views AS
