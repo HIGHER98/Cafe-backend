@@ -59,6 +59,10 @@ func InitRouter() *gin.Engine {
 		adminApi.GET("/tags", admin.GetTags)
 		adminApi.POST("/tag", admin.AddTag)
 		adminApi.PATCH("/tag/:id", admin.PatchTag)
+
+		adminApi.POST("/option", admin.AddItemOptions)
+		adminApi.PATCH("/option/:id", admin.PatchItemOptions)
+		adminApi.DELETE("/option/:id", admin.DeleteItemOptions)
 	}
 	r.GET("/ws", func(c *gin.Context) {
 		staff.Wshandler(c.Writer, c.Request)

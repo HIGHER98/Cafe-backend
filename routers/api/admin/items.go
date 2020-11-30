@@ -7,7 +7,6 @@ import (
 	"cafe/pkg/logging"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -155,7 +154,6 @@ func DeleteCategories(c *gin.Context) {
 }
 
 func GetTags(c *gin.Context) {
-	time.Sleep(time.Second * 20)
 	appG := app.Gin{C: c}
 	tags, err := models.GetAllTags()
 	if err != nil {
@@ -208,11 +206,58 @@ func PatchTag(c *gin.Context) {
 //TODO
 func DeleteTag(c *gin.Context) {}
 
-//Add/Delete tags for a specific item
-func AddItemTags(c *gin.Context)    {}
-func DeleteItemTags(c *gin.Context) {}
+func AddItemOptions(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var options models.ItemOptions
+	err := c.Bind(&options)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
+		return
+	}
+	err = options.AddItemOption()
+	if err != nil {
+		logging.Error("Failed to add item options: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusCreated, e.CREATED, nil)
+}
 
-//Should these do options as well??
-func AddItemOptions(c *gin.Context)    {}
-func PatchItemOptions(c *gin.Context)  {}
-func DeleteItemOptions(c *gin.Context) {}
+func PatchItemOptions(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	var options models.ItemOptions
+	err = c.Bind(&options)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+	err = options.UpdateItemOption(id)
+	if err != nil {
+		logging.Error("Failed to edit item options: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
+
+func DeleteItemOptions(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		return
+	}
+
+	err = models.DeleteItemOption(id)
+	if err != nil {
+		logging.Error("Failed to delete item options: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
