@@ -50,7 +50,8 @@ CREATE TABLE `item_options` (
 	`item_id` int(10) unsigned NOT NULL,
 	`opt` varchar(64) NOT NULL,
 	`add_price` float(8, 2) NOT NULL,
-	`upload_date` DATE NOT NULL,
+	`description` text,
+	`upload_date` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`item_id`) REFERENCES items (`id`)
@@ -64,7 +65,8 @@ CREATE TABLE `item_sizes` (
 	`item_id` int(10) unsigned NOT NULL,
 	`item_size` varchar(64) NOT NULL,
 	`add_price` float(8, 2) NOT NULL,
-	`upload_date` DATE NOT NULL,
+	`description` text,
+	`upload_date` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
 	FOREIGN KEY (`item_id`) REFERENCES items (`id`)
@@ -180,8 +182,8 @@ CREATE TABLE `users` (
 CREATE VIEW item_views AS
 	SELECT 
 		items.id, items.name AS item_name, items.description, items.price,  items.category AS category_id, items.tag AS tag_id,
-		item_options.id AS opt_id, item_options.opt, item_options.add_price AS option_price, 
-		item_sizes.id AS size_id, item_sizes.item_size, item_sizes.add_price AS size_price,
+		item_options.id AS opt_id, item_options.opt, item_options.add_price AS option_price,  item_options.description AS option_description,
+		item_sizes.id AS size_id, item_sizes.item_size, item_sizes.add_price AS size_price, item_sizes.description AS size_description,
 		category.name AS category,
 		tags.name AS tag
 	FROM 
@@ -194,7 +196,7 @@ CREATE VIEW item_views AS
 		category ON items.category = category.id
 	LEFT JOIN 
 		tags ON items.tag = tags.id
-	WHERE items.is_del=0;
+	WHERE items.is_del=0 AND (item_sizes.is_del=0 OR item_sizes.is_del IS NULL) AND (item_options.is_del=0 OR item_options.is_del IS NULL);
 
 -- Queue view
 CREATE VIEW queue_views AS
