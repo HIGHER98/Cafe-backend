@@ -227,13 +227,13 @@ func PatchItemOptions(c *gin.Context) {
 	appG := app.Gin{C: c}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		appG.Response(http.StatusBadRequest, e.FAILED_ATOI, nil)
 		return
 	}
 	var options models.ItemOptions
 	err = c.Bind(&options)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
 		return
 	}
 	err = options.UpdateItemOption(id)
@@ -249,13 +249,71 @@ func DeleteItemOptions(c *gin.Context) {
 	appG := app.Gin{C: c}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
+		appG.Response(http.StatusBadRequest, e.FAILED_ATOI, nil)
 		return
 	}
 
 	err = models.DeleteItemOption(id)
 	if err != nil {
 		logging.Error("Failed to delete item options: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
+
+func AddItemSize(c *gin.Context) {
+	appG := app.Gin{C: c}
+	var size models.ItemSizes
+	err := c.Bind(&size)
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
+		return
+	}
+	err = size.AddItemSize()
+	if err != nil {
+		logging.Error("Failed to add item size: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusCreated, e.CREATED, nil)
+}
+
+func PatchItemSize(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_ATOI, nil)
+		return
+	}
+	var size models.ItemSizes
+	err = c.Bind(&size)
+	if err != nil {
+		logging.Debug("Failed to bind: ", err)
+		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
+		return
+	}
+	logging.Debug("Patching item size: ", size)
+	err = size.UpdateItemSize(id)
+	if err != nil {
+		logging.Error("Failed to edit item size: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, nil)
+}
+
+func DeleteItemSize(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_ATOI, nil)
+		return
+	}
+
+	err = models.DeleteItemSize(id)
+	if err != nil {
+		logging.Error("Failed to delete item size: ", err)
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}

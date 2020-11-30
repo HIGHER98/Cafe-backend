@@ -3,8 +3,8 @@ package models
 type ItemOptions struct {
 	ItemId      int     `json:"item_id"`
 	Opt         string  `json:"opt"`
-	AddPrice    float64 `json:"add_price"`
-	Description string  `json:"description"`
+	AddPrice    float64 `json:"add_price,string,omitempty"`
+	Description *string `json:"description" gorm:"default:null"`
 }
 
 //INSERT INTO item_options VALUES (item_id, opt, add_price, description) VALUES (?, ?, ?, ?);
