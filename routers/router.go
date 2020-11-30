@@ -18,7 +18,7 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PATCH"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"content-type", "authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -32,7 +32,6 @@ func InitRouter() *gin.Engine {
 	//public routes
 	r.GET("/items", cust.GetItemsForSale)
 	r.GET("/items/:id", cust.GetItem)
-	r.POST("/purchase", cust.SubmitDetails)
 	r.POST("/create-checkout-session", cust.ProcessPayment)
 	r.POST("/confirmpayment", cust.PaymentSuccess)
 
@@ -52,6 +51,22 @@ func InitRouter() *gin.Engine {
 		adminApi.GET("/users", admin.GetUsers)
 		adminApi.DELETE("/user/:id", admin.DelUser)
 		adminApi.PATCH("/user/:id", admin.UpdateUserRole)
+
+		adminApi.GET("/categories", admin.GetCategories)
+		adminApi.POST("/category", admin.AddCategory)
+		adminApi.PATCH("/category/:id", admin.PatchCategory)
+
+		adminApi.GET("/tags", admin.GetTags)
+		adminApi.POST("/tag", admin.AddTag)
+		adminApi.PATCH("/tag/:id", admin.PatchTag)
+
+		adminApi.POST("/option", admin.AddItemOptions)
+		adminApi.PATCH("/option/:id", admin.PatchItemOptions)
+		adminApi.DELETE("/option/:id", admin.DeleteItemOptions)
+
+		adminApi.POST("/size", admin.AddItemSize)
+		adminApi.PATCH("/size/:id", admin.PatchItemSize)
+		adminApi.DELETE("/size/:id", admin.DeleteItemSize)
 	}
 	r.GET("/ws", func(c *gin.Context) {
 		staff.Wshandler(c.Writer, c.Request)

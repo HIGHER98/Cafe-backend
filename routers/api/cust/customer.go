@@ -49,40 +49,6 @@ func GetItemsForSale(c *gin.Context) {
 }
 
 //Submit details for purchasing an item
-func SubmitDetails(c *gin.Context) {
-	appG := app.Gin{C: c}
-	var purchase models.Purchase
-	err := c.Bind(&purchase)
-	if err != nil {
-		appG.Response(http.StatusBadRequest, e.FAILED_TO_BIND, nil)
-		return
-	}
-
-	id, err := models.AddPurchase(&purchase)
-	if err == gorm.ErrRecordNotFound {
-		appG.Response(http.StatusBadRequest, e.ID_NOT_FOUND, nil)
-		return
-	} else if err != nil {
-		logging.Error("Failed to add purchase: ", err)
-		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		return
-	} else if id == 0 {
-		logging.Error("Failed to add purchase. Id returned 0")
-		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		return
-	}
-	logging.Info("Adding purchase items for id: ", id)
-	err = models.AddPurchaseItems(id, purchase.Item)
-	if err != nil {
-		logging.Error("Failed to add purchase data: ", err)
-		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		//Need to delete purchase by id here.
-		return
-	}
-	appG.Response(http.StatusCreated, e.CREATED, nil)
-}
-
-//Submit details for purchasing an item
 func SubmitDetailsHelper(purchase *models.Purchase) (int, int, int) {
 	id, err := models.AddPurchase(purchase)
 	if err == gorm.ErrRecordNotFound {
@@ -194,7 +160,7 @@ func PaymentSuccess(c *gin.Context) {
 		return
 	} else if id == 0 {
 		logging.Error("Id returned 0 when confirming purchase")
-		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		appG.Response(http.StatusOK, e.ID_NOT_FOUND, nil)
 		return
 	}
 	//If it's a new purchase and not just someone refreshing the page

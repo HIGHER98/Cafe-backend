@@ -96,30 +96,36 @@ func UpdateItem(id int, data Item) error {
 //Using new Database structure
 
 type ItemView struct {
-	Id          int     `json:"id"`
-	ItemName    string  `json:"item_name"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	OptId       int     `json:"opt_id"`
-	Opt         string  `json:"opt"`
-	OptionPrice float64 `json:"option_price"`
-	SizeId      int     `json:"size_id"`
-	ItemSize    string  `json:"item_size"`
-	SizePrice   float64 `json:"size_price"`
-	Category    string  `json:"category"`
-	Tag         string  `json:"tag"`
+	Id                int     `json:"id"`
+	ItemName          string  `json:"item_name"`
+	Description       string  `json:"description"`
+	Price             float64 `json:"price"`
+	OptId             int     `json:"opt_id"`
+	Opt               string  `json:"opt"`
+	OptionPrice       float64 `json:"option_price"`
+	OptionDescription string  `json:"option_description"`
+	SizeId            int     `json:"size_id"`
+	ItemSize          string  `json:"item_size"`
+	SizePrice         float64 `json:"size_price"`
+	SizeDescription   string  `json:"size_description"`
+	CategoryId        int     `json:"category_id"`
+	Category          string  `json:"category"`
+	TagId             int     `json:"tag_id"`
+	Tag               string  `json:"tag"`
 }
 
 type Options struct {
-	OptId       int     `json:"opt_id"`
-	Opt         string  `json:"opt"`
-	OptionPrice float64 `json:"option_price"`
+	OptId             int     `json:"opt_id"`
+	Opt               string  `json:"opt"`
+	OptionPrice       float64 `json:"option_price"`
+	OptionDescription string  `json:"option_description"`
 }
 
 type Size struct {
-	SizeId    int     `json:"size_id"`
-	ItemSize  string  `json:"item_size"`
-	SizePrice float64 `json:"size_price"`
+	SizeId          int     `json:"size_id"`
+	ItemSize        string  `json:"item_size"`
+	SizePrice       float64 `json:"size_price"`
+	SizeDescription string  `json:"size_description"`
 }
 
 type ItemOptionList struct {
@@ -135,6 +141,8 @@ type Items struct {
 	Category    string         `json:"category"`
 	Tag         string         `json:"tag"`
 	Options     ItemOptionList `json:"options"`
+	CategoryId  int            `json:"category_id"`
+	TagId       int            `json:"tag_id"`
 }
 
 func GetAllActiveItems() (map[int]*Items, error) {
@@ -152,6 +160,8 @@ func GetAllActiveItems() (map[int]*Items, error) {
 				Price:       j.Price,
 				Category:    j.Category,
 				Tag:         j.Tag,
+				CategoryId:  j.CategoryId,
+				TagId:       j.TagId,
 				Options: ItemOptionList{
 					Type: []Options{},
 					Size: []Size{},
@@ -159,31 +169,35 @@ func GetAllActiveItems() (map[int]*Items, error) {
 			}
 			if j.OptId != 0 && !optListed(j.OptId, m[j.Id].Options.Type) {
 				m[j.Id].Options.Type = append(m[j.Id].Options.Type, Options{
-					OptId:       j.OptId,
-					Opt:         j.Opt,
-					OptionPrice: j.OptionPrice,
+					OptId:             j.OptId,
+					Opt:               j.Opt,
+					OptionPrice:       j.OptionPrice,
+					OptionDescription: j.OptionDescription,
 				})
 			}
 			if j.SizeId != 0 && !sizeListed(j.SizeId, m[j.Id].Options.Size) {
 				m[j.Id].Options.Size = append(m[j.Id].Options.Size, Size{
-					SizeId:    j.SizeId,
-					ItemSize:  j.ItemSize,
-					SizePrice: j.SizePrice,
+					SizeId:          j.SizeId,
+					ItemSize:        j.ItemSize,
+					SizePrice:       j.SizePrice,
+					SizeDescription: j.SizeDescription,
 				})
 			}
 		} else {
 			if j.OptId != 0 && !optListed(j.OptId, m[j.Id].Options.Type) {
 				m[j.Id].Options.Type = append(m[j.Id].Options.Type, Options{
-					OptId:       j.OptId,
-					Opt:         j.Opt,
-					OptionPrice: j.OptionPrice,
+					OptId:             j.OptId,
+					Opt:               j.Opt,
+					OptionPrice:       j.OptionPrice,
+					OptionDescription: j.OptionDescription,
 				})
 			}
 			if j.SizeId != 0 && !sizeListed(j.SizeId, m[j.Id].Options.Size) {
 				m[j.Id].Options.Size = append(m[j.Id].Options.Size, Size{
-					SizeId:    j.SizeId,
-					ItemSize:  j.ItemSize,
-					SizePrice: j.SizePrice,
+					SizeId:          j.SizeId,
+					ItemSize:        j.ItemSize,
+					SizePrice:       j.SizePrice,
+					SizeDescription: j.SizeDescription,
 				})
 			}
 		}
