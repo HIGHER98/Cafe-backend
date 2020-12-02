@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS `category`;
 CREATE TABLE `category` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(32) NOT NULL,
+	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -24,6 +25,7 @@ DROP TABLE IF EXISTS `tags`;
 CREATE TABLE `tags` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`name` varchar(32) NOT NULL,
+	`is_del` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -49,7 +51,7 @@ CREATE TABLE `item_options` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`item_id` int(10) unsigned NOT NULL,
 	`opt` varchar(64) NOT NULL,
-	`add_price` float(8, 2) NOT NULL,
+	`add_price` float(8, 2) NOT NULL DEFAULT 0,
 	`description` text,
 	`upload_date` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
@@ -64,7 +66,7 @@ CREATE TABLE `item_sizes` (
 	`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
 	`item_id` int(10) unsigned NOT NULL,
 	`item_size` varchar(64) NOT NULL,
-	`add_price` float(8, 2) NOT NULL,
+	`add_price` float(8, 2) NOT NULL DEFAULT 0,
 	`description` text,
 	`upload_date` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`is_del` tinyint(1) NOT NULL DEFAULT 0,
@@ -180,18 +182,18 @@ CREATE TABLE `users` (
 
 -- Menu view
 CREATE VIEW item_views AS
-	SELECT 
+SELECT 
 		items.id, items.name AS item_name, items.description, items.price,  items.category AS category_id, items.tag AS tag_id,
-		item_options.id AS opt_id, item_options.opt, item_options.add_price AS option_price,  item_options.description AS option_description,
-		item_sizes.id AS size_id, item_sizes.item_size, item_sizes.add_price AS size_price, item_sizes.description AS size_description,
+		item_options.id AS opt_id, item_options.opt, item_options.add_price AS option_price,  item_options.description AS option_description, item_options.is_del AS opt_is_del,
+		item_sizes.id AS size_id, item_sizes.item_size, item_sizes.add_price AS size_price, item_sizes.description AS size_description, item_sizes.is_del AS size_is_del,
 		category.name AS category,
 		tags.name AS tag
 	FROM 
 		items
 	LEFT JOIN 
-		item_options ON items.id = item_options.item_id 
+		item_options ON (items.id = item_options.item_id AND item_options.is_del = 0)
 	LEFT JOIN 
-		item_sizes ON items.id = item_sizes.item_id
+		item_sizes ON (items.id = item_sizes.item_id AND item_sizes.is_del = 0)
 	LEFT JOIN
 		category ON items.category = category.id
 	LEFT JOIN 
