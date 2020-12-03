@@ -195,9 +195,9 @@ SELECT
 	LEFT JOIN 
 		item_sizes ON (items.id = item_sizes.item_id AND item_sizes.is_del = 0)
 	LEFT JOIN
-		category ON items.category = category.id
+		category ON (items.category = category.id AND category.is_del = 0)
 	LEFT JOIN 
-		tags ON items.tag = tags.id
+		tags ON (items.tag = tags.id AND tags.is_del = 0)
 	WHERE items.is_del=0 AND (item_sizes.is_del=0 OR item_sizes.is_del IS NULL) AND (item_options.is_del=0 OR item_options.is_del IS NULL);
 
 -- Queue view
