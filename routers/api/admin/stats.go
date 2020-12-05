@@ -28,12 +28,12 @@ func GetItemPurchaseStats(c *gin.Context) {
 
 	t1, err := time.Parse(layout, from)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, e.ERROR, nil)
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
 		return
 	}
 	t2, err := time.Parse(layout, until)
 	if err != nil {
-		appG.Response(http.StatusBadRequest, e.ERROR, nil)
+		appG.Response(http.StatusBadRequest, e.BAD_REQUEST, nil)
 		return
 	}
 	fromDate := t1.Format(layout)
