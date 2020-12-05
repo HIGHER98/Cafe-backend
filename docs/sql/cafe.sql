@@ -209,25 +209,31 @@ CREATE VIEW queue_views AS
 -- Purchase views
 CREATE VIEW purchase_views AS
 SELECT 
-	p.id AS purchases_id, p.cust_name, p.email, p.date_time, p.collection_time, p.notes,
-	item_views.item_name, item_views.opt, item_views.item_size, (item_views.price + IFNULL(item_views.option_price, 0) + IFNULL(item_views.size_price, 0)) AS cost,
-	pi.id AS purchase_items_id,
-	s.description AS status
-FROM 
-	purchases AS p, 
-	status AS s,
-	purchase_items AS pi
+	purchases.id AS purchases_id, purchases.cust_name, purchases.email, purchases.notes, purchases.date_time, purchases.collection_time,
+	items.id, items.name AS item_name, items.price,
+	item_options.id AS opt_id, item_options.opt, item_options.add_price AS option_price,
+	item_sizes.id AS size_id, item_sizes.item_size, item_sizes.add_price AS size_price,
+	category.name AS category,
+	tags.name AS tag,
+	purchase_items.id AS purchase_items_id,
+	status.description AS status
+FROM
+	purchase_items
 LEFT JOIN
-	item_views ON (
-		pi.item_id = item_views.id AND
-		(pi.opt_id = item_views.opt_id OR ISNULL(pi.opt_id)) AND
-		(pi.size_id = item_views.size_id OR ISNULL(pi.size_id))
-	)
-WHERE 
-	p.id = pi.purchase_id AND 
-	pi.item_id = item_views.id AND
-	p.status = s.id
-ORDER BY p.id ASC;
+	purchases ON (purchase_items.purchase_id = purchases.id)
+LEFT JOIN
+	items ON (items.id = purchase_items.item_id)
+LEFT JOIN
+	item_options ON (item_options.id = purchase_items.opt_id)
+LEFT JOIN
+	item_sizes ON (item_sizes.id = purchase_items.size_id)
+LEFT JOIN
+	tags ON (items.tag = tags.id)
+LEFT JOIN
+	category ON (items.category = category.id)
+LEFT JOIN
+	status ON (purchases.status = status.id)
+ORDER BY purchase_items.id ASC;
 
 
 
