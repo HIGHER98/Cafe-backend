@@ -69,6 +69,8 @@ func InitRouter() *gin.Engine {
 		adminApi.POST("/size", admin.AddItemSize)
 		adminApi.PATCH("/size/:id", admin.PatchItemSize)
 		adminApi.DELETE("/size/:id", admin.DeleteItemSize)
+
+		adminApi.GET("/stats/itempurchasestats", admin.GetItemPurchaseStats)
 	}
 	r.GET("/ws", func(c *gin.Context) {
 		staff.Wshandler(c.Writer, c.Request)

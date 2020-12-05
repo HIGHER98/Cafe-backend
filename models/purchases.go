@@ -185,3 +185,17 @@ func AddPurchaseActivity(purchaseId, status, setBy int) error {
 	}
 	return nil
 }
+
+type PurchaseStat struct {
+	ItemCount int    `json:"item_count"`
+	ItemName  string `json:"item_name"`
+	DateOnly  string `json:"date" gorm:"column:DateOnly"`
+}
+
+func ItemPurchaseStats(from, until string) ([]*PurchaseStat, error) {
+	var stat []*PurchaseStat
+	if err := db.Raw("SELECT count(*) AS item_count, item_name, DATE(collection_time) DateOnly FROM purchase_views WHERE (DATE(collection_time) >= ? AND DATE(collection_time) <= ?) GROUP BY DateOnly, item_name ORDER BY DateOnly asc", from, until).Scan(&stat).Error; err != nil {
+		return nil, err
+	}
+	return stat, nil
+}
