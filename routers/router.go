@@ -55,10 +55,12 @@ func InitRouter() *gin.Engine {
 		adminApi.GET("/categories", admin.GetCategories)
 		adminApi.POST("/category", admin.AddCategory)
 		adminApi.PATCH("/category/:id", admin.PatchCategory)
+		adminApi.DELETE("/category/:id", admin.DeleteCategory)
 
 		adminApi.GET("/tags", admin.GetTags)
 		adminApi.POST("/tag", admin.AddTag)
 		adminApi.PATCH("/tag/:id", admin.PatchTag)
+		adminApi.DELETE("/tag/:id", admin.DeleteTag)
 
 		adminApi.POST("/option", admin.AddItemOptions)
 		adminApi.PATCH("/option/:id", admin.PatchItemOptions)
@@ -67,6 +69,8 @@ func InitRouter() *gin.Engine {
 		adminApi.POST("/size", admin.AddItemSize)
 		adminApi.PATCH("/size/:id", admin.PatchItemSize)
 		adminApi.DELETE("/size/:id", admin.DeleteItemSize)
+
+		adminApi.GET("/stats/itempurchasestats", admin.GetItemPurchaseStats)
 	}
 	r.GET("/ws", func(c *gin.Context) {
 		staff.Wshandler(c.Writer, c.Request)

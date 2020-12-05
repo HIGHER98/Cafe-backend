@@ -91,8 +91,20 @@ func DelItem(c *gin.Context) {
 		appG.Response(http.StatusBadRequest, e.ID_NOT_FOUND, nil)
 		return
 	} else if err != nil {
+		logging.Error("Failed to delete item with id: ", id, "\nError: ", err)
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
-		logging.Error(err)
+		return
+	}
+	err = models.DeleteAllItemOptions(id)
+	if err != nil {
+		logging.Error("Failed to delete all item options for id: ", id, "\nError: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	err = models.DeleteAllItemSizes(id)
+	if err != nil {
+		logging.Error("Failed to delete all item sizes for id: ", id, "\nError: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}
 	appG.Response(http.StatusOK, e.DELETED, nil)
@@ -148,9 +160,20 @@ func PatchCategory(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
 
-//TODO
-func DeleteCategories(c *gin.Context) {
-
+func DeleteCategory(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_ATOI, nil)
+		return
+	}
+	err = models.DeleteCategory(id)
+	if err != nil {
+		logging.Error("Failed to delete category: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.DELETED, nil)
 }
 
 func GetTags(c *gin.Context) {
@@ -203,8 +226,21 @@ func PatchTag(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, nil)
 }
 
-//TODO
-func DeleteTag(c *gin.Context) {}
+func DeleteTag(c *gin.Context) {
+	appG := app.Gin{C: c}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		appG.Response(http.StatusBadRequest, e.FAILED_ATOI, nil)
+		return
+	}
+	err = models.DeleteTag(id)
+	if err != nil {
+		logging.Error("Failed to delete tag: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.DELETED, nil)
+}
 
 func AddItemOptions(c *gin.Context) {
 	appG := app.Gin{C: c}
@@ -220,7 +256,7 @@ func AddItemOptions(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}
-	appG.Response(http.StatusCreated, e.CREATED, nil)
+	appG.Response(http.StatusCreated, e.CREATED, options)
 }
 
 func PatchItemOptions(c *gin.Context) {
@@ -259,7 +295,13 @@ func DeleteItemOptions(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}
-	appG.Response(http.StatusOK, e.SUCCESS, nil)
+	deletedOption, err := models.GetItemOption(id)
+	if err != nil {
+		logging.Error("Failed to get deleted item option: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, deletedOption)
 }
 
 func AddItemSize(c *gin.Context) {
@@ -276,7 +318,7 @@ func AddItemSize(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}
-	appG.Response(http.StatusCreated, e.CREATED, nil)
+	appG.Response(http.StatusCreated, e.CREATED, size)
 }
 
 func PatchItemSize(c *gin.Context) {
@@ -317,5 +359,11 @@ func DeleteItemSize(c *gin.Context) {
 		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
 		return
 	}
-	appG.Response(http.StatusOK, e.SUCCESS, nil)
+	deletedSize, err := models.GetItemSize(id)
+	if err != nil {
+		logging.Error("Failed to get deleted item size: ", err)
+		appG.Response(http.StatusInternalServerError, e.ERROR, nil)
+		return
+	}
+	appG.Response(http.StatusOK, e.SUCCESS, deletedSize)
 }
